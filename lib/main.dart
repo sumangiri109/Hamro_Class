@@ -2,19 +2,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:flutter/material.dart';
+import 'package:hamro_project/firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: FirebaseOptions(
-      apiKey: "AIzaSyDCyccKmcCJDhRJyg-DHypDBw05Yi3zjPE",
-      authDomain: "kacchya-kotha.firebaseapp.com",
-      projectId: "kacchya-kotha",
-      storageBucket: "kacchya-kotha.firebasestorage.app",
-      messagingSenderId: "819917133190",
-      appId: "1:819917133190:web:6ee1932e9326d0474f8807",
-    ),
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
