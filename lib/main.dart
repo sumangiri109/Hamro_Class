@@ -1,6 +1,20 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:flutter/material.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: FirebaseOptions(
+      apiKey: "AIzaSyDCyccKmcCJDhRJyg-DHypDBw05Yi3zjPE",
+      authDomain: "kacchya-kotha.firebaseapp.com",
+      projectId: "kacchya-kotha",
+      storageBucket: "kacchya-kotha.firebasestorage.app",
+      messagingSenderId: "819917133190",
+      appId: "1:819917133190:web:6ee1932e9326d0474f8807",
+    ),
+  );
   runApp(const MyApp());
 }
 
@@ -58,14 +72,21 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
-  void _incrementCounter() {
+  void _incrementCounter() async {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
       _counter++;
+    });
+
+    // 1) Get a reference to Firestore:
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+    // 2) Choose a collection (here we call it 'test'):
+    CollectionReference testCollection = firestore.collection('test');
+
+    // 3) Add a document with two fields:
+    await testCollection.add({
+      'message': 'Button pressed $_counter times',
+      'timestamp': FieldValue.serverTimestamp(),
     });
   }
 
