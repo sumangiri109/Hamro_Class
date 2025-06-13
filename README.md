@@ -1,16 +1,41 @@
 # hamro_project
+Getting Started
 
-A new Flutter project.
+## Create dev branch and set as default, best practice:
+ # Folder Structure:
 
-## Getting Started
+1.  assets folder in main project file (not inside the lib   folder) , define the path in pubspec.yaml file.
 
-This project is a starting point for a Flutter application.
+2.  Inside lib folder : </br>
 
-A few resources to get you started if this is your first Flutter project:
+        a. constant (folder):
+    - create files like: const.dart, images.dart, fonts.dart, string.dart etc. (you can add more files)  </br>
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+            b.i = core (folder):
+    - create models folder : </br>
+    inside models folder make files for models (eg: user_models.dart).
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+             b.ii =  create services (folder):
+      - inside servies folder create services files : ( eg: user_services.dart  ).
+
+            3. create presentation(folder):
+       - inside presentation folder create: </br>
+
+              3.1 auth (folder): 
+        - which contains : login, signup, forgotpassword, changepassword, etc.. </br>
+
+               3.2  permission_handler(folder):
+       - where the files related with asking permission (eg: location permission, photos permission) should be handled  inside file name : permission.dart
+
+              3.3  screens(folders):
+      - which should contains the folder like (homepage,aboutus , contactus and all other folders): </br>  inside homepage folder there should be files related with homepage screen.
+
+     ## Note:                                </br> Inside screens create widget folder where all the widgets should be stored or you can store each widgets in their individual screens . 
+
+
+      
+     
+
+
+
+
