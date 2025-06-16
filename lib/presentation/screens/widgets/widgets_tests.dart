@@ -54,7 +54,7 @@ class _WidgetTestState extends State<WidgetTest> {
                 SizedBox(height: 20),
                 Customtextbutton(
                   onPressed: () {},
-                  text: "welcome",
+                  text: "for cr",
                   textStyle: TextStyle(color: Colors.yellow),
                 ), // Custom Text Button call
               ],
