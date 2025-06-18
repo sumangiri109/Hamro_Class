@@ -1,7 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
+//import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:flutter/material.dart';
-import 'package:hamro_project/core/services/firebase_options.dart';
-import 'package:hamro_project/presentation/screens/widgets/widgets_tests.dart';
+import 'package:hamro_project/presentation/screens/sign_up_page.dart';
+//import 'package:hamro_project/firebase_options.dart';
+import 'core/services/firebase_options.dart';
 
 void main() async {
   // Firebase initilization:
@@ -14,13 +17,15 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Hamro Project',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: WidgetTest(),
+      title: 'Kachhya Kotha',
+      home: SignUpPage(),
     );
   }
 }
+
+//done
