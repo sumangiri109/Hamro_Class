@@ -1,5 +1,5 @@
 // log in screen message:
-const String loginMessage = "Hello this is Login page ";
+const String loginMessage = "Hamro_class";
 
 // Signup Page:
 const String signupMessage = "Hello this is Signup page ..... ";
