@@ -1,1 +1,18 @@
-{"flutter":{"platforms":{"dart":{"lib/firebase_options.dart":{"projectId":"kacchya-kotha","configurations":{"web":"1:819917133190:web:6ee1932e9326d0474f8807","windows":"1:819917133190:web:1ea180710fb646b74f8807"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "kacchya-kotha",
+          "configurations": {
+            "web": "1:819917133190:web:6ee1932e9326d0474f8807",
+            "windows": "1:819917133190:web:1ea180710fb646b74f8807"
+          }
+        }
+      }
+    }
+  },
+  "emulators": {
+    "singleProjectMode": true
+  }
+}
