@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hamro_project/constant/const.dart';
+import 'package:hamro_project/presentation/screens/login_page.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -121,7 +122,14 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                       const SizedBox(height: 20),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LoginPage(),
+                            ),
+                          );
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFFD2B7F5),
                           padding: const EdgeInsets.symmetric(
