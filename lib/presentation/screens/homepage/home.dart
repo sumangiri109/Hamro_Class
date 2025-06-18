@@ -15,8 +15,8 @@ class _HomepageState extends State<Homepage> {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [Text("saugat"), Text("saugat")],
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [Text("HAMRO_KACHAYA")],
         ),
       ),
     );

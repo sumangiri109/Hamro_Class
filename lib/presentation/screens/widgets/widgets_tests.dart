@@ -34,7 +34,7 @@ class _WidgetTestState extends State<WidgetTest> {
                 Image.asset(
                   saugat2, //  fetched from constant (image)
                   height: 200,
-                  width: 200,
+                  width: 300,
                   fit: BoxFit.cover,
                 ),
                 const SizedBox(height: 20), //  spacing
@@ -51,11 +51,12 @@ class _WidgetTestState extends State<WidgetTest> {
                   },
                   text: "Login Page",
                 ),
-                SizedBox(height: 20),
+                SizedBox(height: 100),
                 Customtextbutton(
                   onPressed: () {},
                   text: "for cr",
-                  textStyle: TextStyle(color: Colors.yellow),
+                  textStyle: TextStyle(color: Colors.green), // Custom text styl
+                  // Custom text size
                 ), // Custom Text Button call
               ],
             ),
