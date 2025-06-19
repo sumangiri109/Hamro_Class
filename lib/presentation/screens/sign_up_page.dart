@@ -86,37 +86,44 @@ class _SignUpPageState extends State<SignUpPage> {
               child: Center(
                 child: Container(
                   padding: const EdgeInsets.all(30),
-                  margin: EdgeInsets.only(top: 50, right: 50, bottom: 50),
+                  margin: const EdgeInsets.only(top: 50, right: 50, bottom: 50),
                   decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 221, 220, 220),
+                    color: const Color.fromARGB(255, 233, 232, 234),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
-                    // mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const Text(
-                        "Sign Up",
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w600,
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 40),
+                        child: const Text(
+                          "Sign Up",
+                          style: TextStyle(
+                            fontSize: 35,
+                            color: Colors.black54,
+                            letterSpacing: 7.0,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 10),
+
                       TextField(
                         decoration: InputDecoration(
                           labelText: "Email",
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(18),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 15),
+                      const SizedBox(height: 30),
                       TextField(
                         obscureText: true,
                         decoration: InputDecoration(
                           labelText: "Password",
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(18),
                           ),
                         ),
                       ),
@@ -134,16 +141,85 @@ class _SignUpPageState extends State<SignUpPage> {
                           backgroundColor: Color(0xFFD2B7F5),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 40,
-                            vertical: 15,
+                            vertical: 18,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(18),
                           ),
                         ),
                         child: const Text(
-                          "Sign Up",
-                          style: TextStyle(color: Colors.black),
+                          "Sign in",
+                          style: TextStyle(
+                            color: Colors.black54,
+                            letterSpacing: 3.0,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // OR Divider
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: 1,
+                              color: const Color(0xFFDBDBDB),
+                            ),
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+
+                            child: Text(
+                              "OR",
+                              style: TextStyle(
+                                color: Color(0xFF8E8E8E),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              height: 1,
+                              color: const Color(0xFFDBDBDB),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Sign Up Section
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            "Already have an account?",
+                            style: TextStyle(
+                              color: Colors.black54,
+                              letterSpacing: 2.0,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const LoginPage(),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              "Log in",
+                              style: TextStyle(
+                                color: Color(0xFF0095F6),
+                                letterSpacing: 2.0,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
