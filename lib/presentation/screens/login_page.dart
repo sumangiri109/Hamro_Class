@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hamro_project/presentation/screens/home_page.dart';
+import 'package:hamro_project/presentation/screens/sign_up_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -83,17 +85,23 @@ class _LoginPageState extends State<LoginPage> {
                   padding: const EdgeInsets.all(30),
                   margin: const EdgeInsets.only(top: 50, right: 50, bottom: 50),
                   decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 221, 220, 220),
+                    color: const Color.fromARGB(255, 233, 232, 234),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      const Text(
-                        "Login",
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w600,
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 40),
+                        child: const Text(
+                          "Login",
+                          style: TextStyle(
+                            fontSize: 35,
+                            color: Colors.black54,
+                            letterSpacing: 7.0,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -102,7 +110,7 @@ class _LoginPageState extends State<LoginPage> {
                         decoration: InputDecoration(
                           labelText: "Email",
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(18),
                           ),
                         ),
                       ),
@@ -112,26 +120,37 @@ class _LoginPageState extends State<LoginPage> {
                         decoration: InputDecoration(
                           labelText: "Password",
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(18),
                           ),
                         ),
                       ),
                       const SizedBox(height: 20),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const HomePage(),
+                            ),
+                          );
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFFD2B7F5),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 40,
-                            vertical: 15,
+                            vertical: 18,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(18),
                           ),
                         ),
                         child: const Text(
                           "Login",
-                          style: TextStyle(color: Colors.black),
+                          style: TextStyle(
+                            color: Colors.black54,
+                            letterSpacing: 3.0,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -166,32 +185,32 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 20),
 
-                      // Forgot Password
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text(
-                          "Forgot password?",
-                          style: TextStyle(
-                            color: Color(0xFF0095F6),
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
                       // Sign Up Section
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text("Don't have an account?"),
+                          const Text(
+                            "Don't have an account?",
+                            style: TextStyle(
+                              color: Colors.black54,
+                              letterSpacing: 2.0,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                           TextButton(
                             onPressed: () {
-                              // TODO: Navigate to signup screen
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const SignUpPage(),
+                                ),
+                              );
                             },
                             child: const Text(
                               "Sign up",
                               style: TextStyle(
                                 color: Color(0xFF0095F6),
+                                letterSpacing: 2.0,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
