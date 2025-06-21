@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hamro_project/core/services/auth.dart' show AuthMethods;
 import 'package:hamro_project/presentation/screens/home_page.dart';
+//import 'package:hamro_project/presentation/screens/home_page.dart';
 import 'package:hamro_project/presentation/screens/sign_up_page.dart';
+//import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -10,6 +13,33 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  @override
+  void dispose() {
+    super.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+  }
+
+  void loginUser() async {
+    String res = await AuthMethods().loginUser(
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
+
+    if (res == "success") {
+      // If signup is successful, go to login
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    } else {
+      // If signup failed, show error
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -107,6 +137,7 @@ class _LoginPageState extends State<LoginPage> {
                       const SizedBox(height: 20),
 
                       TextField(
+                        controller: _emailController,
                         decoration: InputDecoration(
                           labelText: "Email",
                           border: OutlineInputBorder(
@@ -116,6 +147,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 15),
                       TextField(
+                        controller: _passwordController,
                         obscureText: true,
                         decoration: InputDecoration(
                           labelText: "Password",
@@ -126,14 +158,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 20),
                       ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const HomePage(),
-                            ),
-                          );
-                        },
+                        onPressed: loginUser,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFFD2B7F5),
                           padding: const EdgeInsets.symmetric(
