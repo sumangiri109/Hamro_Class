@@ -2,7 +2,6 @@ import 'package:firebase_core/firebase_core.dart';
 //import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:flutter/material.dart';
-import 'package:hamro_project/presentation/screens/login_page.dart';
 import 'package:hamro_project/presentation/screens/sign_up_page.dart';
 //import 'package:hamro_project/firebase_options.dart';
 import 'core/services/firebase_options.dart';
