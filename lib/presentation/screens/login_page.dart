@@ -29,6 +29,9 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     if (res == "success") {
+      //check the user is cr or student
+      await AuthMethods().checkCurrentUserRole();
+
       // If signup is successful, go to login
       Navigator.push(
         context,

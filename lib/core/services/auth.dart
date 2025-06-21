@@ -24,6 +24,7 @@ class AuthMethods {
         await _firestore.collection('users').doc(cred.user!.uid).set({
           'uid': cred.user!.uid,
           'email': email,
+          'role': 'student',
         });
         res = "success";
       }
@@ -53,5 +54,21 @@ class AuthMethods {
       res = err.toString();
     }
     return res;
+  }
+
+  Future<void> checkCurrentUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      if (userDoc.exists) {
+        String role = userDoc['role'];
+        print('User Role: $role'); // prints to console
+      }
+    }
   }
 }
