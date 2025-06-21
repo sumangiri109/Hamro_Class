@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hamro_project/constant/const.dart';
+import 'package:hamro_project/core/services/auth.dart';
 import 'package:hamro_project/presentation/screens/login_page.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -10,6 +11,16 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  @override
+  void dispose() {
+    super.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
@@ -110,6 +121,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       const SizedBox(height: 10),
 
                       TextField(
+                        controller: _emailController,
                         decoration: InputDecoration(
                           labelText: "Email",
                           border: OutlineInputBorder(
@@ -119,6 +131,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                       const SizedBox(height: 30),
                       TextField(
+                        controller: _passwordController,
                         obscureText: true,
                         decoration: InputDecoration(
                           labelText: "Password",
@@ -129,14 +142,28 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                       const SizedBox(height: 20),
                       ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LoginPage(),
-                            ),
+                        onPressed: () async {
+                          String res = await AuthMethods().signUpUser(
+                            email: _emailController.text,
+                            password: _passwordController.text,
                           );
+
+                          if (res == "success") {
+                            // If signup is successful, go to login
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const LoginPage(),
+                              ),
+                            );
+                          } else {
+                            // If signup failed, show error
+                            ScaffoldMessenger.of(
+                              context,
+                            ).showSnackBar(SnackBar(content: Text(res)));
+                          }
                         },
+
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFFD2B7F5),
                           padding: const EdgeInsets.symmetric(
