@@ -1,41 +1,79 @@
-# hamro_project
-Getting Started
+# Hamro Class 📚📱
 
-## Create dev branch and set as default, best practice:
- # Folder Structure:
+**Hamro Class** is a Flutter-based mobile application designed to streamline communication within college classrooms. It acts as a digital bridge between Students and Class Representatives (CRs), ensuring that important updates, assignments, and events are always just a tap away.
 
-1.  assets folder in main project file (not inside the lib   folder) , define the path in pubspec.yaml file.
+## 🔗 GitHub Repository
 
-2.  Inside lib folder : </br>
+[Hamro_Class on GitHub](https://github.com/sumangiri109/Hamro_Class)
 
-        a. constant (folder):
-    - create files like: const.dart, images.dart, fonts.dart, string.dart etc. (you can add more files)  </br>
+## 🚀 Features
 
-            b.i = core (folder):
-    - create models folder : </br>
-    inside models folder make files for models (eg: user_models.dart).
+- 🔐 **Login & Signup System** (using Firebase Authentication)
+- 🎭 **Role-based Interface**
+  - **Students**: View information
+  - **CRs**: Add, Edit, and Delete entries
+- 🗓️ Class **Routine**
+- 📝 **Assignments** tracking
+- 📢 **Event Announcements**
+- 🧪 **Internal Test** schedules
+- 💡 **Suggestion Box**
+- 📊 **Polls and Voting**
+- ☁️ **Real-time updates** with Cloud Firestore
+- 🌙 **Dark Mode** (planned)
+- 📥 **Push Notifications** (planned)
+- 📚 **Resource Sharing** (future feature)
+- 🕒 **Attendance Tracker** (future feature)
 
-             b.ii =  create services (folder):
-      - inside servies folder create services files : ( eg: user_services.dart  ).
+## 🛠️ Tech Stack
 
-            3. create presentation(folder):
-       - inside presentation folder create: </br>
+- **Frontend:** Flutter
+- **Authentication:** Firebase Auth
+- **Database:** Cloud Firestore
+- **State Management:** *(Add yours if you're using one, e.g., Provider, Riverpod)*
 
-              3.1 auth (folder): 
-        - which contains : login, signup, forgotpassword, changepassword, etc.. </br>
+## 📁 Project Structure
 
-               3.2  permission_handler(folder):
-       - where the files related with asking permission (eg: location permission, photos permission) should be handled  inside file name : permission.dart
+```
+lib/
+│
+├── core/         # Configuration and Firebase setup
+├── features/     # UI and logic for each feature (assignments, events, etc.)
+├── models/       # Data models
+├── services/     # Firebase and backend logic
+└── widgets/      # Reusable UI components
+```
 
-              3.3  screens(folders):
-      - which should contains the folder like (homepage,aboutus , contactus and all other folders): </br>  inside homepage folder there should be files related with homepage screen.
+## 🔧 How to Run
 
-     ## Note:                                </br> Inside screens create widget folder where all the widgets should be stored or you can store each widgets in their individual screens . 
+1. **Clone the Repository**
 
+   ```bash
+   git clone https://github.com/sumangiri109/Hamro_Class.git
+   ```
 
-      
-     
+2. **Navigate to the Project Folder**
 
+   ```bash
+   cd Hamro_Class
+   ```
 
+3. **Get the dependencies**
 
+   ```bash
+   flutter pub get
+   ```
+
+4. **Run the app**
+
+   ```bash
+   flutter run
+   ```
+
+## 🤝 Contributing
+
+Have an idea or found a bug? Feel free to open an issue or submit a pull request!
+
+---
+
+Made with ❤️ by Suman Giri and Team
 
