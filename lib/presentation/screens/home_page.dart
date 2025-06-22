@@ -1,25 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:hamro_project/presentation/screens/class_routine.dart';
 
-void main() {
-  runApp(const KachyaKothaApp());
-}
-
-class KachyaKothaApp extends StatelessWidget {
-  const KachyaKothaApp({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Kachya Kotha',
-      debugShowCheckedModeBanner: false,
-      home: const HomePage(),
-    );
-  }
-}
+// Import each page from its own file
+import 'announcement.dart';
+import 'assignment.dart';
+import 'polls.dart';
+import 'upcomming.dart';
+import 'class_routine.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({Key? key}) : super(key: key);
+  const HomePage({super.key});
+
+  String _getCurrentDate() {
+    final now = DateTime.now();
+    return "${_getMonthName(now.month)} ${now.day}, ${now.year}";
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return months[month - 1];
+  }
 
   final List<MenuItem> menuItems = const [
     MenuItem(
@@ -35,23 +48,29 @@ class HomePage extends StatelessWidget {
     MenuItem(
       title: "Assignments",
       iconPath: "images/assignments.png",
-      page: AssignmentsPage(),
+      page: AssignmentPage(),
     ),
+    MenuItem(title: "Polls", iconPath: "images/pool.png", page: PollsPage()),
     MenuItem(
-      title: "Study Materials",
-      iconPath: "images/pool.png",
-      page: StudyMaterialsPage(),
-    ),
-    MenuItem(
-      title: "Upcoming",
+      title: "Upcomming",
       iconPath: "images/upcomming.png",
-      page: UpcomingPage(),
+      page: UpcommingPage(),
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: Colors.deepPurple,
+        onPressed: () {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text("Logged out")));
+        },
+        icon: const Icon(Icons.logout),
+        label: const Text("Logout"),
+      ),
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
@@ -62,17 +81,38 @@ class HomePage extends StatelessWidget {
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              alignment: Alignment.center,
-              color: Color(0xFFB388EB),
-              child: const Text(
-                '~ Kachya Kotha ~',
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Georgia',
-                  color: Colors.white,
-                ),
+              color: const Color(0xFFB388EB),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "👋 Greetings & Welcome Back",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontFamily: 'Georgia',
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Text(
+                    "~ Kachya Kotha ~",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontFamily: 'Georgia',
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    _getCurrentDate(),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontFamily: 'Courier',
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
             Expanded(
@@ -107,7 +147,7 @@ class HomePage extends StatelessWidget {
             },
             child: Container(
               decoration: BoxDecoration(
-                color: Color(0xFFD1B2FF).withOpacity(0.9),
+                color: const Color.fromRGBO(209, 178, 255, 0.9),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: const [
                   BoxShadow(
@@ -154,65 +194,4 @@ class MenuItem {
     required this.iconPath,
     required this.page,
   });
-}
-
-// Placeholder pages for navigation targets
-class AnnouncementPage extends StatelessWidget {
-  const AnnouncementPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Announcement")),
-      body: const Center(child: Text("Announcement Page")),
-    );
-  }
-}
-
-class ClassRoutinePage extends StatelessWidget {
-  const ClassRoutinePage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Class Routine")),
-      body: const Center(child: Text("Class Routine Page")),
-    );
-  }
-}
-
-class AssignmentsPage extends StatelessWidget {
-  const AssignmentsPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Assignments")),
-      body: const Center(child: Text("Assignments Page")),
-    );
-  }
-}
-
-class StudyMaterialsPage extends StatelessWidget {
-  const StudyMaterialsPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Study Materials")),
-      body: const Center(child: Text("Study Materials Page")),
-    );
-  }
-}
-
-class UpcomingPage extends StatelessWidget {
-  const UpcomingPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Upcoming")),
-      body: const Center(child: Text("Upcoming Page")),
-    );
-  }
 }
