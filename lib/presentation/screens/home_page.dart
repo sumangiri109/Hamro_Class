@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:hamro_project/presentation/screens/class_routine.dart';
 
 // Import each page from its own file
 import 'announcement.dart';
 import 'assignment.dart';
 import 'polls.dart';
 import 'upcomming.dart';
+import 'class_routine.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -38,11 +40,11 @@ class HomePage extends StatelessWidget {
       iconPath: "images/Announcement.png",
       page: AnnouncementPage(),
     ),
-    /* MenuItem(
+    MenuItem(
       title: "Class Routines",
       iconPath: "images/routine.png",
       page: ClassRoutinePage(),
-    ),*/
+    ),
     MenuItem(
       title: "Assignments",
       iconPath: "images/assignments.png",
