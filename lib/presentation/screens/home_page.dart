@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hamro_project/presentation/screens/class_routine.dart';
 
 void main() {
   runApp(const KachyaKothaApp());
