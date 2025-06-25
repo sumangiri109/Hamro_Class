@@ -62,77 +62,144 @@ class _ClassRoutineScreenState extends State<ClassRoutineScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF3EAF8),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFFB28DD0),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+      backgroundColor: Colors.transparent,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("images/AppBackground.png"),
+            fit: BoxFit.cover,
+          ),
         ),
-        title: const Text(
-          'Class Routine',
-          style: TextStyle(fontFamily: 'Georgia'),
-        ),
-      ),
-      floatingActionButton: isCR!
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                setState(() {
-                  isEditing = !isEditing;
-                });
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      isEditing ? 'Edit mode enabled' : 'Edit mode disabled',
+        child: Column(
+          children: [
+            // Custom header like AnnouncementPage
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              decoration: const BoxDecoration(
+                color: Color(0xFFBE90D4),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(
+                            255,
+                            228,
+                            208,
+                            239,
+                          ),
+                          foregroundColor: Colors.black87,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 10,
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 18,
+                            fontFamily: 'Roboto',
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text("BACK"),
+                      ),
                     ),
                   ),
-                );
-              },
-              backgroundColor: isEditing
-                  ? Colors.redAccent
-                  : const Color(0xFFB28DD0),
-              icon: Icon(isEditing ? Icons.save : Icons.edit),
-              label: Text(isEditing ? 'Save' : 'Edit'),
-            )
-          : null,
-      body: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Class Routine Table',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Georgia',
+                  Center(
+                    child: Text(
+                      "Class Routine",
+                      style: const TextStyle(
+                        fontSize: 45,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'lexend',
+                        color: Colors.white,
+                        letterSpacing: 7,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
+
+            // Content below header
             Expanded(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minWidth: MediaQuery.of(context).size.width,
-                  ),
-                  child: Table(
-                    border: TableBorder.all(color: Colors.black26),
-                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                    columnWidths: {
-                      0: const FixedColumnWidth(100),
-                      for (int i = 1; i <= times.length; i++)
-                        i: const FixedColumnWidth(140),
-                    },
-                    children: [
-                      _buildHeaderRow(),
-                      ...List.generate(days.length, _buildDataRow),
-                    ],
-                  ),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minWidth: MediaQuery.of(context).size.width,
+                          ),
+                          child: Table(
+                            border: TableBorder.all(color: Colors.black26),
+                            defaultVerticalAlignment:
+                                TableCellVerticalAlignment.middle,
+                            columnWidths: {
+                              0: const FixedColumnWidth(100),
+                              for (int i = 1; i <= times.length; i++)
+                                i: const FixedColumnWidth(140),
+                            },
+                            children: [
+                              _buildHeaderRow(),
+                              ...List.generate(days.length, _buildDataRow),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
+
+            if (isCR!)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16.0, right: 16),
+                child: Align(
+                  alignment: Alignment.bottomRight,
+                  child: FloatingActionButton.extended(
+                    onPressed: () {
+                      setState(() {
+                        isEditing = !isEditing;
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            isEditing
+                                ? 'Edit mode enabled'
+                                : 'Edit mode disabled',
+                          ),
+                        ),
+                      );
+                    },
+                    backgroundColor: isEditing
+                        ? Colors.redAccent
+                        : const Color(0xFFB28DD0),
+                    icon: Icon(isEditing ? Icons.save : Icons.edit),
+                    label: Text(isEditing ? 'Save' : 'Edit'),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

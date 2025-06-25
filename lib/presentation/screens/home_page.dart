@@ -57,7 +57,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     MenuItem(
       title: "Assignments",
       iconPath: "images/assignments.png",
-      page: AssignmentPage(),
+      page: AssignmentsPage(),
       badgeCount: 5,
     ),
     MenuItem(
@@ -144,6 +144,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       case 'teacher':
       case 'cr':
         roleTitle = 'CR';
+
         break;
       case 'student':
       default:
@@ -202,7 +203,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       animation: _headerAnimationController,
       builder: (context, child) {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -214,8 +215,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               ),
             ),
             borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(30),
-              bottomRight: Radius.circular(30),
+              bottomLeft: Radius.circular(50),
+              bottomRight: Radius.circular(50),
             ),
             boxShadow: [
               BoxShadow(
@@ -246,7 +247,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         'Welcome Back!',
                         style: TextStyle(
                           fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                          letterSpacing: 3,
                           color: Colors.white,
                         ),
                       ),
@@ -255,8 +256,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
-                      vertical: 6,
+                      vertical: 0,
                     ),
+
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(20),
@@ -272,15 +274,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   ),
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 3),
               const Text(
-                '~ Kachya Kotha ~',
+                'Kachya Kotha ',
                 style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Georgia',
+                  fontSize: 45,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'lexend',
                   color: Colors.white,
-                  letterSpacing: 2,
+                  letterSpacing: 8,
                 ),
               ),
             ],
@@ -412,7 +414,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
-                        fontFamily: 'Georgia',
+                        fontFamily: 'Lexend',
                         shadows: [
                           Shadow(
                             offset: Offset(1, 1),
