@@ -44,133 +44,145 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEBDDF7),
-      body: Column(
-        children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            decoration: const BoxDecoration(
-              color: Color(0xFFBE90D4),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(
-                          255,
-                          228,
-                          208,
-                          239,
-                        ),
-                        foregroundColor: Colors.black87,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 18,
-                          vertical: 10,
-                        ),
-                        textStyle: GoogleFonts.roboto(fontSize: 18),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text("BACK"),
-                    ),
-                  ),
-                ),
-                Center(
-                  child: Text(
-                    "~Announcements~",
-                    style: GoogleFonts.roboto(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+      backgroundColor: Colors.transparent,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("images/AppBackground.png"),
+            fit: BoxFit.cover,
           ),
-
-          // Announcements List
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
+        ),
+        child: Column(
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              decoration: const BoxDecoration(
+                color: Color(0xFFBE90D4),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
+              ),
               child: Stack(
+                alignment: Alignment.center,
                 children: [
-                  Column(
-                    children: [
-                      const SizedBox(height: 40), // spacing above scroll area
-                      Expanded(
-                        child: Scrollbar(
-                          thickness: 8,
-                          radius: const Radius.circular(10),
-                          thumbVisibility: true,
-                          child: ListView.builder(
-                            itemCount: announcements.length,
-                            itemBuilder: (context, index) {
-                              return AnnouncementCard(
-                                initialText: announcements[index],
-                                isEditing: isEditing,
-                                onChanged: (newText) {
-                                  setState(() {
-                                    announcements[index] = newText;
-                                  });
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // CR-only Edit Button
-                  if (userRole == 'CR')
-                    Positioned(
-                      bottom: 10,
-                      right: 10,
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.click,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFBE90D4),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
+                          backgroundColor: const Color.fromARGB(
+                            255,
+                            228,
+                            208,
+                            239,
                           ),
+                          foregroundColor: Colors.black87,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 10,
+                          ),
+                          textStyle: GoogleFonts.roboto(fontSize: 18),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                         onPressed: () {
-                          setState(() {
-                            isEditing = !isEditing;
-                          });
+                          Navigator.of(context).pop();
                         },
-                        child: Text(
-                          isEditing ? 'Save' : 'Edit',
-                          style: GoogleFonts.roboto(
-                            fontSize: 20,
-                            color: Colors.white,
-                          ),
-                        ),
+                        child: const Text("BACK"),
                       ),
                     ),
+                  ),
+                  Center(
+                    child: Text(
+                      "Announcements",
+                      style: TextStyle(
+                        fontSize: 45,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'lexend',
+                        color: Colors.white,
+                        letterSpacing: 7,
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-        ],
+
+            // Announcements List
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Stack(
+                  children: [
+                    Column(
+                      children: [
+                        const SizedBox(height: 40),
+                        Expanded(
+                          child: Scrollbar(
+                            thickness: 8,
+                            radius: const Radius.circular(10),
+                            thumbVisibility: true,
+                            child: ListView.builder(
+                              itemCount: announcements.length,
+                              itemBuilder: (context, index) {
+                                return AnnouncementCard(
+                                  initialText: announcements[index],
+                                  isEditing: isEditing,
+                                  onChanged: (newText) {
+                                    setState(() {
+                                      announcements[index] = newText;
+                                    });
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // CR-only Edit Button
+                    if (userRole == 'CR')
+                      Positioned(
+                        bottom: 10,
+                        right: 10,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFBE90D4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              isEditing = !isEditing;
+                            });
+                          },
+                          child: Text(
+                            isEditing ? 'Save' : 'Edit',
+                            style: GoogleFonts.roboto(
+                              fontSize: 20,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
