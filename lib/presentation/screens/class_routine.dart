@@ -67,30 +67,12 @@ class _ClassRoutineScreenState extends State<ClassRoutineScreen> {
         backgroundColor: const Color(0xFFB28DD0),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+          onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Class Routine',
           style: TextStyle(fontFamily: 'Georgia'),
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text(
-              "BACK",
-              style: TextStyle(
-                color: Colors.white,
-                fontFamily: 'Georgia',
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
       ),
       floatingActionButton: isCR!
           ? FloatingActionButton.extended(
