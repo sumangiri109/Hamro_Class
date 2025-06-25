@@ -2,17 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ClassRoutinePage extends StatefulWidget {
-  const ClassRoutinePage({Key? key}) : super(key: key);
+class ClassRoutineScreen extends StatefulWidget {
+  const ClassRoutineScreen({super.key});
 
   @override
-  State<ClassRoutinePage> createState() => _ClassRoutinePageState();
+  State<ClassRoutineScreen> createState() => _ClassRoutineScreenState();
 }
 
-class _ClassRoutinePageState extends State<ClassRoutinePage> {
-  bool? isCR; // null = loading, true = CR, false = student
+class _ClassRoutineScreenState extends State<ClassRoutineScreen> {
+  final List<String> times = [
+    '9:00–11:00',
+    '11:00–12:00', // Break
+    '12:00–2:00',
+    '2:00–4:00',
+  ];
 
-  final List<String> times = ['9–11', '11–12', '12–2', '2–4'];
   final List<String> days = [
     'Sunday',
     'Monday',
@@ -24,39 +28,31 @@ class _ClassRoutinePageState extends State<ClassRoutinePage> {
   ];
 
   late List<List<String>> routine;
+  bool? isCR;
+  bool isEditing = false;
 
   @override
   void initState() {
     super.initState();
     routine = List.generate(days.length, (_) => List.filled(times.length, ''));
-    _checkUserRole();
+    fetchUserRole();
   }
 
-  Future<void> _checkUserRole() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        setState(() => isCR = false); // Not signed in
-        return;
-      }
-
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-
-      if (userDoc.exists) {
-        final role = userDoc['role'];
-        setState(() {
-          isCR = role == 'cr';
-        });
-      } else {
-        setState(() => isCR = false); // Default to student
-      }
-    } catch (e) {
-      print("Error checking role: $e");
+  Future<void> fetchUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
       setState(() => isCR = false);
+      return;
     }
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    setState(() {
+      isCR = doc.exists && doc['role'].toString().toLowerCase() == 'cr';
+    });
   }
 
   @override
@@ -69,43 +65,69 @@ class _ClassRoutinePageState extends State<ClassRoutinePage> {
       backgroundColor: const Color(0xFFF3EAF8),
       appBar: AppBar(
         backgroundColor: const Color(0xFFB28DD0),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: const Text(
           'Class Routine',
-          style: TextStyle(fontFamily: 'Georgia', fontSize: 22),
+          style: TextStyle(fontFamily: 'Georgia'),
         ),
-        centerTitle: true,
       ),
+      floatingActionButton: isCR!
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                setState(() {
+                  isEditing = !isEditing;
+                });
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      isEditing ? 'Edit mode enabled' : 'Edit mode disabled',
+                    ),
+                  ),
+                );
+              },
+              backgroundColor: isEditing
+                  ? Colors.redAccent
+                  : const Color(0xFFB28DD0),
+              icon: Icon(isEditing ? Icons.save : Icons.edit),
+              label: Text(isEditing ? 'Save' : 'Edit'),
+            )
+          : null,
       body: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(12),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 16),
-            Text(
-              isCR!
-                  ? "You are CR - tap any cell to edit."
-                  : "You are Student - read-only mode.",
+            const Text(
+              'Class Routine Table',
               style: TextStyle(
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: isCR! ? Colors.green : Colors.grey[700],
+                fontFamily: 'Georgia',
               ),
             ),
             const SizedBox(height: 12),
             Expanded(
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: MediaQuery.of(context).size.width,
+                  ),
                   child: Table(
-                    border: TableBorder.all(color: Colors.black12),
+                    border: TableBorder.all(color: Colors.black26),
                     defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                    columnWidths: const {0: FixedColumnWidth(90)},
+                    columnWidths: {
+                      0: const FixedColumnWidth(100),
+                      for (int i = 1; i <= times.length; i++)
+                        i: const FixedColumnWidth(140),
+                    },
                     children: [
                       _buildHeaderRow(),
-                      ...List.generate(
-                        days.length,
-                        (row) => _buildDataRow(row),
-                      ),
+                      ...List.generate(days.length, _buildDataRow),
                     ],
                   ),
                 ),
@@ -121,27 +143,48 @@ class _ClassRoutinePageState extends State<ClassRoutinePage> {
     return TableRow(
       decoration: const BoxDecoration(color: Color(0xFFE4C6F1)),
       children: [
-        _buildCell("Day", isHeader: true),
+        _buildCell('Day', isHeader: true),
         ...times.map((t) => _buildCell(t, isHeader: true)).toList(),
       ],
     );
   }
 
-  TableRow _buildDataRow(int row) {
+  TableRow _buildDataRow(int rowIndex) {
     return TableRow(
       decoration: BoxDecoration(
-        color: row % 2 == 0 ? const Color(0xFFF6ECFF) : Colors.white,
+        color: rowIndex % 2 == 0 ? const Color(0xFFF1E4FA) : Colors.white,
       ),
       children: [
-        _buildCell(days[row], isHeader: true),
-        ...List.generate(times.length, (col) {
-          return GestureDetector(
-            onTap: () {
-              if (isCR!) {
-                _editCell(row, col);
-              }
-            },
-            child: _buildCell(routine[row][col]),
+        _buildCell(days[rowIndex], isHeader: true),
+        ...List.generate(times.length, (colIndex) {
+          final isBreak = times[colIndex] == '11:00–12:00';
+          final text = routine[rowIndex][colIndex].isEmpty && isBreak
+              ? 'Break'
+              : routine[rowIndex][colIndex];
+
+          return Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: isEditing && !isBreak
+                ? TextFormField(
+                    initialValue: text,
+                    onChanged: (value) {
+                      routine[rowIndex][colIndex] = value;
+                    },
+                    maxLines: null,
+                    style: const TextStyle(fontSize: 14),
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      contentPadding: EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 10,
+                      ),
+                    ),
+                  )
+                : Text(
+                    text,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 14, fontFamily: 'Georgia'),
+                  ),
           );
         }),
       ],
@@ -149,46 +192,16 @@ class _ClassRoutinePageState extends State<ClassRoutinePage> {
   }
 
   Widget _buildCell(String text, {bool isHeader = false}) {
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
+    return Container(
+      padding: const EdgeInsets.all(12),
+      alignment: Alignment.center,
       child: Text(
-        text.isEmpty ? "-" : text,
-        textAlign: TextAlign.center,
+        text,
         style: TextStyle(
           fontSize: isHeader ? 16 : 14,
           fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
           fontFamily: 'Georgia',
         ),
-      ),
-    );
-  }
-
-  void _editCell(int row, int col) async {
-    final controller = TextEditingController(text: routine[row][col]);
-
-    await showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text("Edit ${days[row]} ${times[col]}"),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(hintText: "Enter subject/class"),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                routine[row][col] = controller.text;
-              });
-              Navigator.pop(context);
-            },
-            child: const Text("Save"),
-          ),
-        ],
       ),
     );
   }
