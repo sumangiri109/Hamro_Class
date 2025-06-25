@@ -3,6 +3,12 @@ import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'announcement.dart';
+import 'assignment.dart';
+import 'class_routine.dart';
+import 'polls.dart';
+import 'upcomming.dart';
+
 void main() {
   runApp(const KachyaKothaApp());
 }
@@ -45,25 +51,25 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     MenuItem(
       title: "Class Routines",
       iconPath: "images/routine.png",
-      page: ClassRoutinePage(),
+      page: ClassRoutineScreen(),
       badgeCount: 0,
     ),
     MenuItem(
       title: "Assignments",
       iconPath: "images/assignments.png",
-      page: AssignmentsPage(),
+      page: AssignmentPage(),
       badgeCount: 5,
     ),
     MenuItem(
-      title: "Study Materials",
+      title: "Polls",
       iconPath: "images/pool.png",
-      page: StudyMaterialsPage(),
+      page: PollsPage(),
       badgeCount: 2,
     ),
     MenuItem(
       title: "Upcoming",
       iconPath: "images/upcomming.png",
-      page: UpcomingPage(),
+      page: UpcommingPage(),
       badgeCount: 7,
     ),
   ];
@@ -560,85 +566,4 @@ class MenuItem {
     required this.page,
     this.badgeCount = 0,
   });
-}
-
-// Placeholder pages
-class AnnouncementPage extends StatelessWidget {
-  const AnnouncementPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text("Announcements"),
-      backgroundColor: Color(0xFFB388EB),
-      foregroundColor: Colors.white,
-    ),
-    body: const Center(
-      child: Text("Announcements Page", style: TextStyle(fontSize: 18)),
-    ),
-  );
-}
-
-class ClassRoutinePage extends StatelessWidget {
-  const ClassRoutinePage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text("Class Routines"),
-      backgroundColor: Color(0xFFB388EB),
-      foregroundColor: Colors.white,
-    ),
-    body: const Center(
-      child: Text("Class Routines Page", style: TextStyle(fontSize: 18)),
-    ),
-  );
-}
-
-class AssignmentsPage extends StatelessWidget {
-  const AssignmentsPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text("Assignments"),
-      backgroundColor: Color(0xFFB388EB),
-      foregroundColor: Colors.white,
-    ),
-    body: const Center(
-      child: Text("Assignments Page", style: TextStyle(fontSize: 18)),
-    ),
-  );
-}
-
-class StudyMaterialsPage extends StatelessWidget {
-  const StudyMaterialsPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text("Study Materials"),
-      backgroundColor: Color(0xFFB388EB),
-      foregroundColor: Colors.white,
-    ),
-    body: const Center(
-      child: Text("Study Materials Page", style: TextStyle(fontSize: 18)),
-    ),
-  );
-}
-
-class UpcomingPage extends StatelessWidget {
-  const UpcomingPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text("Upcoming Events"),
-      backgroundColor: Color(0xFFB388EB),
-      foregroundColor: Colors.white,
-    ),
-    body: const Center(
-      child: Text("Upcoming Events Page", style: TextStyle(fontSize: 18)),
-    ),
-  );
 }
