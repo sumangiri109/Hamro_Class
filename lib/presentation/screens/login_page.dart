@@ -35,7 +35,7 @@ class _LoginPageState extends State<LoginPage> {
       // If signup is successful, go to login
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
+        MaterialPageRoute(builder: (context) => HomePage()),
       );
     } else {
       // If signup failed, show error
