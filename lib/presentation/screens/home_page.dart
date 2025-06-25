@@ -9,7 +9,7 @@ import 'upcomming.dart';
 import 'class_routine.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  HomePage({super.key});
 
   String _getCurrentDate() {
     final now = DateTime.now();
@@ -34,7 +34,7 @@ class HomePage extends StatelessWidget {
     return months[month - 1];
   }
 
-  final List<MenuItem> menuItems = const [
+  final List<MenuItem> menuItems = [
     MenuItem(
       title: "Announcement",
       iconPath: "images/Announcement.png",
@@ -43,7 +43,7 @@ class HomePage extends StatelessWidget {
     MenuItem(
       title: "Class Routines",
       iconPath: "images/routine.png",
-      page: ClassRoutinePage(),
+      page: ClassRoutineScreen(),
     ),
     MenuItem(
       title: "Assignments",

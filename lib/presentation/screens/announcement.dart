@@ -1,26 +1,45 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart'; // 👈 Import Google Fonts
+import 'package:google_fonts/google_fonts.dart';
 
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class AnnouncementPage extends StatefulWidget {
+  const AnnouncementPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Announcement Page',
-      theme: ThemeData(useMaterial3: true),
-      home: const AnnouncementPage(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
+  State<AnnouncementPage> createState() => _AnnouncementPageState();
 }
 
-class AnnouncementPage extends StatelessWidget {
-  const AnnouncementPage({super.key});
+class _AnnouncementPageState extends State<AnnouncementPage> {
+  bool isEditing = false;
+  String? userRole;
+  final List<String> announcements = [
+    'Class will start from next week.',
+    'Mid-term exam postponed.',
+    'Submit your assignment before Friday.',
+    'Meeting for CRs tomorrow.',
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserRole();
+  }
+
+  Future<void> fetchUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      if (doc.exists) {
+        setState(() {
+          userRole = doc['role'];
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +47,7 @@ class AnnouncementPage extends StatelessWidget {
       backgroundColor: const Color(0xFFEBDDF7),
       body: Column(
         children: [
-          // Header Bar
+          // Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             decoration: const BoxDecoration(
@@ -43,17 +62,30 @@ class AnnouncementPage extends StatelessWidget {
               children: [
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(
-                      "BACK",
-                      style: GoogleFonts.roboto(
-                        fontSize: 24,
-                        fontWeight: FontWeight.normal,
-                        fontStyle: FontStyle.normal,
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(
+                          255,
+                          228,
+                          208,
+                          239,
+                        ),
+                        foregroundColor: Colors.black87,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 10,
+                        ),
+                        textStyle: GoogleFonts.roboto(fontSize: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text("BACK"),
                     ),
                   ),
                 ),
@@ -61,9 +93,9 @@ class AnnouncementPage extends StatelessWidget {
                   child: Text(
                     "~Announcements~",
                     style: GoogleFonts.roboto(
-                      fontSize: 30,
-                      fontWeight: FontWeight.normal,
-                      fontStyle: FontStyle.normal,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -71,54 +103,69 @@ class AnnouncementPage extends StatelessWidget {
             ),
           ),
 
-          // Posts
+          // Announcements List
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Stack(
                 children: [
-                  // Add a gap above the posts
                   Column(
                     children: [
-                      const SizedBox(height: 40), // Gap for Edit button
+                      const SizedBox(height: 40), // spacing above scroll area
                       Expanded(
                         child: Scrollbar(
-                          thickness: 10,
+                          thickness: 8,
                           radius: const Radius.circular(10),
                           thumbVisibility: true,
-                          child: ListView(
-                            children: const [
-                              AnnouncementCard(text: 'Post 1'),
-                              AnnouncementCard(text: 'Post 2'),
-                              AnnouncementCard(text: 'Post 3'),
-                              AnnouncementCard(text: 'Post 4'),
-                            ],
+                          child: ListView.builder(
+                            itemCount: announcements.length,
+                            itemBuilder: (context, index) {
+                              return AnnouncementCard(
+                                initialText: announcements[index],
+                                isEditing: isEditing,
+                                onChanged: (newText) {
+                                  setState(() {
+                                    announcements[index] = newText;
+                                  });
+                                },
+                              );
+                            },
                           ),
                         ),
                       ),
                     ],
                   ),
-                  Positioned(
-                    bottom: 10,
-                    right: 10,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFBE90D4),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+
+                  // CR-only Edit Button
+                  if (userRole == 'CR')
+                    Positioned(
+                      bottom: 10,
+                      right: 10,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFBE90D4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                      ),
-                      onPressed: () {},
-                      child: Text(
-                        'Edit',
-                        style: GoogleFonts.roboto(
-                          fontSize: 20,
-                          fontWeight: FontWeight.normal,
-                          fontStyle: FontStyle.normal,
+                        onPressed: () {
+                          setState(() {
+                            isEditing = !isEditing;
+                          });
+                        },
+                        child: Text(
+                          isEditing ? 'Save' : 'Edit',
+                          style: GoogleFonts.roboto(
+                            fontSize: 20,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -130,30 +177,37 @@ class AnnouncementPage extends StatelessWidget {
 }
 
 class AnnouncementCard extends StatelessWidget {
-  final String text;
-  const AnnouncementCard({super.key, required this.text});
+  final String initialText;
+  final bool isEditing;
+  final ValueChanged<String> onChanged;
+
+  const AnnouncementCard({
+    super.key,
+    required this.initialText,
+    required this.isEditing,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 120,
-      margin: const EdgeInsets.symmetric(vertical: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.all(20),
       width: double.infinity,
       decoration: BoxDecoration(
         color: const Color(0xFFE5D3F2),
-        border: Border.all(color: Colors.black54, width: 1),
-        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: Colors.black54),
+        borderRadius: BorderRadius.circular(10),
       ),
-      alignment: Alignment.centerLeft,
-      child: Text(
-        text,
-        style: GoogleFonts.roboto(
-          fontSize: 26,
-          fontWeight: FontWeight.normal,
-          fontStyle: FontStyle.normal,
-        ),
-      ),
+      child: isEditing
+          ? TextFormField(
+              initialValue: initialText,
+              onChanged: onChanged,
+              maxLines: null,
+              style: GoogleFonts.roboto(fontSize: 22),
+              decoration: const InputDecoration(border: InputBorder.none),
+            )
+          : Text(initialText, style: GoogleFonts.roboto(fontSize: 24)),
     );
   }
 }
