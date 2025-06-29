@@ -50,25 +50,25 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     ),
     MenuItem(
       title: "Class Routines",
-      iconPath: "images/routine.png",
+      iconPath: "assets/images/routine.png",
       page: ClassRoutineScreen(),
       badgeCount: 0,
     ),
     MenuItem(
       title: "Assignments",
-      iconPath: "images/assignments.png",
+      iconPath: "assets/images/assignments.png",
       page: AssignmentsPage(),
       badgeCount: 5,
     ),
     MenuItem(
       title: "Polls",
-      iconPath: "images/pool.png",
+      iconPath: "assets/images/pool.png",
       page: PollsPage(),
       badgeCount: 2,
     ),
     MenuItem(
       title: "Upcoming",
-      iconPath: "images/upcomming.png",
+      iconPath: "assets/images/upcomming.png",
       page: UpcommingPage(),
       badgeCount: 7,
     ),
@@ -180,7 +180,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("images/AppBackground.png"),
+            image: AssetImage("assets/images/AppBackground.png"),
             fit: BoxFit.cover,
           ),
         ),
@@ -411,8 +411,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     child: Text(
                       item.title,
                       style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        // fontWeight: FontWeight.bold,
+                        letterSpacing: 4,
                         color: Colors.white,
                         fontFamily: 'Lexend',
                         shadows: [

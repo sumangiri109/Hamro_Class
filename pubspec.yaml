@@ -29,11 +29,12 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   flutter:
-    sdk: flutter
+    sdk: flutter   
   firebase_core: ^3.14.0      # initialize Firebase
   cloud_firestore: ^5.6.9    # Firestore database
   firebase_auth: ^5.6.0  
   google_fonts: ^6.1.0    # Authentication
+  intl: ^0.18.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -55,9 +56,9 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  uses-material-design: true
   assets:
-    - assets/images/logo.png
-    - assests/images/AppBackgorund.png
+    - assets/images/
     
     # - assets/images/splash.png
     # - assets/images/onboarding.png
