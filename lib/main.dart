@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Kachhya Kotha',
-      home: SignUpPage(), // Change to LoginPage() if needed
+      home: HomePage(), // Change to LoginPage() if needed
     );
   }
 }
