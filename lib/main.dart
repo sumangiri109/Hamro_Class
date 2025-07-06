@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:hamro_project/presentation/screens/announcement.dart';
 import 'package:hamro_project/presentation/screens/class_routine.dart';
 import 'package:hamro_project/presentation/screens/home_page.dart';
+import 'package:hamro_project/presentation/screens/login_page.dart';
 
 //import 'package:hamro_project/presentation/screens/login_page.dart';
 
@@ -29,7 +30,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Kachhya Kotha',
-      home: SignUpPage(), // Change to LoginPage() if needed
+      home: LoginPage(),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/services/routine_service.dart';
 
 class ClassRoutineScreen extends StatefulWidget {
   const ClassRoutineScreen({super.key});
@@ -12,7 +13,7 @@ class ClassRoutineScreen extends StatefulWidget {
 class _ClassRoutineScreenState extends State<ClassRoutineScreen> {
   final List<String> times = [
     '9:00–11:00',
-    '11:00–12:00', // Break
+    '11:00–12:00',
     '12:00–2:00',
     '2:00–4:00',
   ];
@@ -24,18 +25,21 @@ class _ClassRoutineScreenState extends State<ClassRoutineScreen> {
     'Wednesday',
     'Thursday',
     'Friday',
-    'Saturday',
   ];
 
   late List<List<String>> routine;
   bool? isCR;
   bool isEditing = false;
 
+  //fixed.
+  static const double rowHeight = 67.3;
+
   @override
   void initState() {
     super.initState();
     routine = List.generate(days.length, (_) => List.filled(times.length, ''));
     fetchUserRole();
+    loadRoutineFromFirestore();
   }
 
   Future<void> fetchUserRole() async {
@@ -44,15 +48,26 @@ class _ClassRoutineScreenState extends State<ClassRoutineScreen> {
       setState(() => isCR = false);
       return;
     }
-
     final doc = await FirebaseFirestore.instance
         .collection('users')
         .doc(user.uid)
         .get();
-
     setState(() {
       isCR = doc.exists && doc['role'].toString().toLowerCase() == 'cr';
     });
+  }
+
+  Future<void> loadRoutineFromFirestore() async {
+    final service = RoutineService();
+    final loadedRoutine = await service.fetchRoutine(days, times);
+    setState(() {
+      routine = loadedRoutine;
+    });
+  }
+
+  Future<void> saveRoutineToFirestore() async {
+    final service = RoutineService();
+    await service.saveRoutine(routine);
   }
 
   @override
@@ -74,7 +89,7 @@ class _ClassRoutineScreenState extends State<ClassRoutineScreen> {
         ),
         child: Column(
           children: [
-            // Custom header like AnnouncementPage
+            // Header...
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               decoration: const BoxDecoration(
@@ -89,40 +104,28 @@ class _ClassRoutineScreenState extends State<ClassRoutineScreen> {
                 children: [
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(
-                            255,
-                            228,
-                            208,
-                            239,
-                          ),
-                          foregroundColor: Colors.black87,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 10,
-                          ),
-                          textStyle: const TextStyle(
-                            fontSize: 18,
-                            fontFamily: 'Roboto',
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(
+                          255,
+                          228,
+                          208,
+                          239,
                         ),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text("BACK"),
+                        foregroundColor: Colors.black87,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 10,
+                        ),
                       ),
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text("BACK"),
                     ),
                   ),
-                  Center(
+                  const Center(
                     child: Text(
                       "Class Routine",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 45,
                         fontWeight: FontWeight.w500,
                         fontFamily: 'lexend',
@@ -135,65 +138,70 @@ class _ClassRoutineScreenState extends State<ClassRoutineScreen> {
               ),
             ),
 
-            // Content below header
+            // Routine Table (fills width, no horizontal scroll)
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 12),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minWidth: MediaQuery.of(context).size.width,
-                          ),
-                          child: Table(
-                            border: TableBorder.all(color: Colors.black26),
-                            defaultVerticalAlignment:
-                                TableCellVerticalAlignment.middle,
-                            columnWidths: {
-                              0: const FixedColumnWidth(100),
-                              for (int i = 1; i <= times.length; i++)
-                                i: const FixedColumnWidth(140),
-                            },
-                            children: [
-                              _buildHeaderRow(),
-                              ...List.generate(days.length, _buildDataRow),
-                            ],
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      // only vertical scroll if needed
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minWidth: constraints.maxWidth,
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: IntrinsicHeight(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Colors.black26,
+                                width: 1,
+                              ),
+                            ),
+                            child: Table(
+                              border: TableBorder(
+                                verticalInside: const BorderSide(
+                                  color: Colors.black26,
+                                ),
+                                horizontalInside: const BorderSide(
+                                  color: Colors.black26,
+                                ),
+                              ),
+                              defaultVerticalAlignment:
+                                  TableCellVerticalAlignment.middle,
+                              // Distribute each column equally
+                              columnWidths: {
+                                for (int i = 0; i <= times.length; i++)
+                                  i: const FlexColumnWidth(1),
+                              },
+                              children: [
+                                _buildHeaderRow(),
+                                ...List.generate(days.length, _buildDataRow),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
               ),
             ),
 
+            // Edit/Save FAB...
             if (isCR!)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16.0, right: 16),
                 child: Align(
                   alignment: Alignment.bottomRight,
                   child: FloatingActionButton.extended(
-                    onPressed: () {
-                      setState(() {
-                        isEditing = !isEditing;
-                      });
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            isEditing
-                                ? 'Edit mode enabled'
-                                : 'Edit mode disabled',
-                          ),
-                        ),
-                      );
+                    onPressed: () async {
+                      if (isEditing) await saveRoutineToFirestore();
+                      setState(() => isEditing = !isEditing);
                     },
                     backgroundColor: isEditing
-                        ? Colors.redAccent
+                        ? const Color(0xFFE2B2EA)
                         : const Color(0xFFB28DD0),
                     icon: Icon(isEditing ? Icons.save : Icons.edit),
                     label: Text(isEditing ? 'Save' : 'Edit'),
@@ -210,8 +218,20 @@ class _ClassRoutineScreenState extends State<ClassRoutineScreen> {
     return TableRow(
       decoration: const BoxDecoration(color: Color(0xFFE4C6F1)),
       children: [
-        _buildCell('Day', isHeader: true),
-        ...times.map((t) => _buildCell(t, isHeader: true)).toList(),
+        _buildCell(
+          'Day',
+          isHeader: true,
+          fixedHeight: rowHeight,
+          addRightBorder: false,
+        ),
+        ...times.map(
+          (t) => _buildCell(
+            t,
+            isHeader: true,
+            fixedHeight: rowHeight,
+            addRightBorder: false,
+          ),
+        ),
       ],
     );
   }
@@ -219,57 +239,75 @@ class _ClassRoutineScreenState extends State<ClassRoutineScreen> {
   TableRow _buildDataRow(int rowIndex) {
     return TableRow(
       decoration: BoxDecoration(
-        color: rowIndex % 2 == 0 ? const Color(0xFFF1E4FA) : Colors.white,
+        color: rowIndex.isEven ? const Color(0xFFF1E4FA) : Colors.white,
       ),
       children: [
-        _buildCell(days[rowIndex], isHeader: true),
+        _buildCell(
+          days[rowIndex],
+          isHeader: true,
+          fixedHeight: rowHeight,
+          addRightBorder: false,
+        ),
         ...List.generate(times.length, (colIndex) {
-          final isBreak = times[colIndex] == '11:00–12:00';
-          final text = routine[rowIndex][colIndex].isEmpty && isBreak
-              ? 'Break'
-              : routine[rowIndex][colIndex];
-
-          return Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: isEditing && !isBreak
-                ? TextFormField(
-                    initialValue: text,
-                    onChanged: (value) {
-                      routine[rowIndex][colIndex] = value;
-                    },
-                    maxLines: null,
-                    style: const TextStyle(fontSize: 14),
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        vertical: 8,
-                        horizontal: 10,
-                      ),
-                    ),
-                  )
-                : Text(
-                    text,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 14, fontFamily: 'Georgia'),
-                  ),
+          final text = routine[rowIndex][colIndex];
+          return _buildCell(
+            text,
+            isHeader: false,
+            fixedHeight: rowHeight,
+            isEditing: isEditing,
+            onChanged: (val) => routine[rowIndex][colIndex] = val,
+            addRightBorder: false,
           );
         }),
       ],
     );
   }
 
-  Widget _buildCell(String text, {bool isHeader = false}) {
+  Widget _buildCell(
+    String text, {
+    bool isHeader = false,
+    bool isEditing = false,
+    ValueChanged<String>? onChanged,
+    double? fixedHeight,
+    bool addRightBorder = false,
+  }) {
+    Widget child = isEditing
+        ? TextFormField(
+            initialValue: text,
+            onChanged: onChanged,
+            maxLines: null,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+            ),
+          )
+        : Center(
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: isHeader ? 17 : 20,
+                fontWeight: isHeader ? FontWeight.bold : FontWeight.bold,
+                fontFamily: 'Georgia',
+                color: isHeader ? Colors.black87 : Colors.black54,
+              ),
+            ),
+          );
+
+    if (fixedHeight != null) {
+      child = SizedBox(height: fixedHeight, child: child);
+    }
+
     return Container(
-      padding: const EdgeInsets.all(12),
-      alignment: Alignment.center,
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: isHeader ? 16 : 14,
-          fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
-          fontFamily: 'Georgia',
-        ),
-      ),
+      padding: const EdgeInsets.all(4),
+      decoration: addRightBorder
+          ? const BoxDecoration(
+              border: Border(
+                right: BorderSide(color: Colors.black26, width: 1),
+              ),
+            )
+          : null,
+      child: child,
     );
   }
 }

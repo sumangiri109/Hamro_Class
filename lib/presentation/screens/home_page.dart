@@ -8,6 +8,7 @@ import 'assignment.dart';
 import 'class_routine.dart';
 import 'polls.dart';
 import 'upcomming.dart';
+import 'general_chat.dart'; // your chat page
 
 void main() {
   runApp(const KachyaKothaApp());
@@ -39,7 +40,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late AnimationController _headerAnimationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  String userRole = 'student'; // Default role
+  String userRole = 'student';
 
   final List<MenuItem> menuItems = const [
     MenuItem(
@@ -67,8 +68,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       badgeCount: 2,
     ),
     MenuItem(
+      title: "General Chat", // new entry
+      iconPath: "assets/images/upcomming.png", // same as Upcoming
+      page: GeneralChat(),
+      badgeCount: 0,
+    ),
+    MenuItem(
       title: "Upcoming",
-      iconPath: "assets/images/upcomming.png",
+      iconPath: "images/commingsoon.jpg",
       page: UpcommingPage(),
       badgeCount: 7,
     ),
@@ -77,7 +84,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _getCurrentUserRole(); // Fetch user role
+    _getCurrentUserRole();
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
@@ -103,21 +110,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   Future<void> _getCurrentUserRole() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+      if (user != null && mounted) {
+        final doc = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
             .get();
-
-        if (userDoc.exists && mounted) {
-          setState(() {
-            userRole = userDoc['role'] ?? 'student';
-          });
+        if (doc.exists) {
+          setState(() => userRole = doc['role'] ?? 'student');
         }
       }
     } catch (e) {
       print('Error fetching user role: $e');
-      // Keep default role as 'student'
     }
   }
 
@@ -130,34 +133,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
-    String timeGreeting;
-    if (hour < 12) {
-      timeGreeting = "Good Morning 🌄";
-    } else if (hour < 17) {
-      timeGreeting = "Good Afternoon 🌞";
-    } else {
-      timeGreeting = "Good Evening 🌅";
-    }
-
-    String roleTitle;
-    switch (userRole.toLowerCase()) {
-      case 'teacher':
-      case 'cr':
-        roleTitle = 'CR';
-
-        break;
-      case 'student':
-      default:
-        roleTitle = 'Student';
-        break;
-    }
-
+    final timeGreeting = hour < 12
+        ? "Good Morning 🌄"
+        : (hour < 17 ? "Good Afternoon 🌞" : "Good Evening 🌅");
+    final roleTitle =
+        (userRole.toLowerCase() == 'cr' || userRole.toLowerCase() == 'teacher')
+        ? 'CR'
+        : 'Student';
     return "$timeGreeting $roleTitle";
   }
 
   String _getCurrentDate() {
     final now = DateTime.now();
-    final months = [
+    const months = [
       'Jan',
       'Feb',
       'Mar',
@@ -198,302 +186,263 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildAnimatedHeader() {
-    return AnimatedBuilder(
-      animation: _headerAnimationController,
-      builder: (context, child) {
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color(0xFFB388EB).withOpacity(0.9),
-                Color(0xFF8093F1).withOpacity(0.9),
-              ],
-              transform: GradientRotation(
-                _headerAnimationController.value * 2 * math.pi,
-              ),
-            ),
-            borderRadius: const BorderRadius.only(
-              bottomLeft: Radius.circular(50),
-              bottomRight: Radius.circular(50),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
+  Widget _buildAnimatedHeader() => AnimatedBuilder(
+    animation: _headerAnimationController,
+    builder: (context, child) => Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFB388EB).withOpacity(0.9),
+            const Color(0xFF8093F1).withOpacity(0.9),
+          ],
+          transform: GradientRotation(
+            _headerAnimationController.value * 2 * math.pi,
           ),
-          child: Column(
+        ),
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(50),
+          bottomRight: Radius.circular(50),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _getGreeting(),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.white70,
-                          fontWeight: FontWeight.w300,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      const Text(
-                        'Welcome Back!',
-                        style: TextStyle(
-                          fontSize: 20,
-                          letterSpacing: 3,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    _getGreeting(),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w300,
+                    ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 0,
-                    ),
-
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      _getCurrentDate(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Welcome Back!',
+                    style: TextStyle(
+                      fontSize: 20,
+                      letterSpacing: 3,
+                      color: Colors.white,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 3),
-              const Text(
-                'Kachya Kotha ',
-                style: TextStyle(
-                  fontSize: 45,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'lexend',
-                  color: Colors.white,
-                  letterSpacing: 8,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  _getCurrentDate(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildMenuGrid() {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: SlideTransition(
-        position: _slideAnimation,
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 16,
-              childAspectRatio: 1.4,
+          const SizedBox(height: 3),
+          const Text(
+            'Kachya Kotha',
+            style: TextStyle(
+              fontSize: 45,
+              fontWeight: FontWeight.w600,
+              fontFamily: 'lexend',
+              color: Colors.white,
+              letterSpacing: 8,
             ),
-            itemCount: menuItems.length,
-            itemBuilder: (context, index) {
-              return AnimatedBuilder(
-                animation: _animationController,
-                builder: (context, child) {
-                  final delay = index * 0.1;
-                  final animationValue = Curves.easeOutBack.transform(
-                    math.max(
-                      0,
-                      (_animationController.value - delay) / (1 - delay),
-                    ),
-                  );
-                  return Transform.scale(
-                    scale: animationValue,
-                    child: _buildEnhancedMenuCard(
-                      context,
-                      menuItems[index],
-                      index,
-                    ),
-                  );
-                },
-              );
-            },
           ),
-        ),
+        ],
       ),
-    );
-  }
+    ),
+  );
 
-  Widget _buildEnhancedMenuCard(
-    BuildContext context,
-    MenuItem item,
-    int index,
-  ) {
-    return Hero(
-      tag: "menu_${item.title}",
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) =>
-                    item.page,
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) {
-                      return SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(1.0, 0.0),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
-                      );
-                    },
-              ),
+  Widget _buildMenuGrid() => FadeTransition(
+    opacity: _fadeAnimation,
+    child: SlideTransition(
+      position: _slideAnimation,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            childAspectRatio: 1.4,
+          ),
+          itemCount: menuItems.length,
+          itemBuilder: (context, index) {
+            final item = menuItems[index];
+            return AnimatedBuilder(
+              animation: _animationController,
+              builder: (context, child) {
+                final delay = index * 0.1;
+                final val = Curves.easeOutBack.transform(
+                  math.max(
+                    0,
+                    (_animationController.value - delay) / (1 - delay),
+                  ),
+                );
+                return Transform.scale(
+                  scale: val,
+                  child: _buildEnhancedMenuCard(item, index),
+                );
+              },
             );
           },
-          borderRadius: BorderRadius.circular(25),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(25),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 15,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Stack(
-              children: [
-                // Image fills the entire container
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(25),
-                  child: Container(
-                    width: double.infinity,
-                    height: double.infinity,
-                    child: Image.asset(item.iconPath, fit: BoxFit.cover),
-                  ),
-                ),
-                // Dark overlay for better text readability
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(25),
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withOpacity(0.6),
-                      ],
-                    ),
-                  ),
-                ),
-                // Title positioned higher up
-                Positioned(
-                  bottom: 20,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Text(
-                      item.title,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        // fontWeight: FontWeight.bold,
-                        letterSpacing: 4,
-                        color: Colors.white,
-                        fontFamily: 'Lexend',
-                        shadows: [
-                          Shadow(
-                            offset: Offset(1, 1),
-                            blurRadius: 3,
-                            color: Colors.black54,
-                          ),
-                        ],
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-                // Badge
-                if (item.badgeCount > 0)
-                  Positioned(
-                    right: 10,
-                    top: 10,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 4,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        item.badgeCount.toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
+        ),
+      ),
+    ),
+  );
+
+  Widget _buildEnhancedMenuCard(MenuItem item, int index) => Hero(
+    tag: "menu_${item.title}",
+    child: Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (_, __, ___) => item.page,
+            transitionsBuilder: (_, anim, __, child) => SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1.0, 0.0),
+                end: Offset.zero,
+              ).animate(anim),
+              child: child,
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildBottomWave() {
-    return ClipPath(
-      clipper: WaveClipper(),
-      child: Container(
-        height: 60,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFFB388EB).withOpacity(0.8),
-              Color(0xFF8093F1).withOpacity(0.8),
+        borderRadius: BorderRadius.circular(25),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(25),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(25),
+                child: Image.asset(
+                  item.iconPath,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(25),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.transparent, Colors.black.withOpacity(0.6)],
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 20,
+                left: 0,
+                right: 0,
+                child: Text(
+                  item.title,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    letterSpacing: 4,
+                    color: Colors.white,
+                    fontFamily: 'Lexend',
+                    shadows: [
+                      Shadow(
+                        offset: Offset(1, 1),
+                        blurRadius: 3,
+                        color: Colors.black54,
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              if (item.badgeCount > 0)
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      item.badgeCount.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
 
-  Widget _buildFloatingActionButton() {
-    return FloatingActionButton(
-      onPressed: _showQuickActionsSheet,
-      backgroundColor: const Color(0xFFB388EB),
-      child: const Icon(Icons.add, color: Colors.white),
-    );
-  }
+  Widget _buildBottomWave() => ClipPath(
+    clipper: WaveClipper(),
+    child: Container(
+      height: 60,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFB388EB).withOpacity(0.8),
+            const Color(0xFF8093F1).withOpacity(0.8),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  Widget _buildFloatingActionButton() => FloatingActionButton(
+    onPressed: _showQuickActionsSheet,
+    backgroundColor: const Color(0xFFB388EB),
+    child: const Icon(Icons.add, color: Colors.white),
+  );
 
   void _showQuickActionsSheet() {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
+      builder: (c) => Container(
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.only(
@@ -530,31 +479,21 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 class WaveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
-    var path = Path();
-    path.lineTo(0, size.height - 20);
-    var firstControlPoint = Offset(size.width / 4, size.height);
-    var firstEndPoint = Offset(size.width / 2, size.height - 10);
-    path.quadraticBezierTo(
-      firstControlPoint.dx,
-      firstControlPoint.dy,
-      firstEndPoint.dx,
-      firstEndPoint.dy,
-    );
-    var secondControlPoint = Offset(size.width * 3 / 4, size.height - 20);
-    var secondEndPoint = Offset(size.width, size.height - 10);
-    path.quadraticBezierTo(
-      secondControlPoint.dx,
-      secondControlPoint.dy,
-      secondEndPoint.dx,
-      secondEndPoint.dy,
-    );
-    path.lineTo(size.width, 0);
-    path.close();
-    return path;
+    final p = Path();
+    p.lineTo(0, size.height - 20);
+    final cp1 = Offset(size.width / 4, size.height);
+    final ep1 = Offset(size.width / 2, size.height - 10);
+    p.quadraticBezierTo(cp1.dx, cp1.dy, ep1.dx, ep1.dy);
+    final cp2 = Offset(size.width * 3 / 4, size.height - 20);
+    final ep2 = Offset(size.width, size.height - 10);
+    p.quadraticBezierTo(cp2.dx, cp2.dy, ep2.dx, ep2.dy);
+    p.lineTo(size.width, 0);
+    p.close();
+    return p;
   }
 
   @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+  bool shouldReclip(covariant CustomClipper<Path> old) => false;
 }
 
 class MenuItem {
@@ -562,7 +501,6 @@ class MenuItem {
   final String iconPath;
   final Widget page;
   final int badgeCount;
-
   const MenuItem({
     required this.title,
     required this.iconPath,
