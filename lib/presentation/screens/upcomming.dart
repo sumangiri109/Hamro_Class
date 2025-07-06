@@ -78,10 +78,11 @@ class _UpcommingPageState extends State<UpcommingPage> {
                       child: Text(
                         'Upcomings',
                         style: TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.w500,
+                          fontFamily: 'lexend',
                           color: Colors.white,
-                          fontSize: 28,
-                          letterSpacing: 3,
-                          fontWeight: FontWeight.bold,
+                          letterSpacing: 5,
                         ),
                       ),
                     ),

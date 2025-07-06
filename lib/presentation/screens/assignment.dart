@@ -1,45 +1,20 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+// assignment_page.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class AssignmentsPage extends StatefulWidget {
-  const AssignmentsPage({super.key});
+import 'subject_assignment_page.dart';
 
-  @override
-  State<AssignmentsPage> createState() => _AssignmentsPageState();
-}
+class AssignmentPage extends StatelessWidget {
+  const AssignmentPage({Key? key}) : super(key: key);
 
-class _AssignmentsPageState extends State<AssignmentsPage> {
-  bool isEditing = false;
-  String? userRole;
-  final List<String> assignments = [
-    'Submit Physics Lab before Monday.',
-    'Group Project report due this Friday.',
-    'DSA Assignment 2 deadline extended.',
-    'Final-year proposal presentation next week.',
+  // Hard‑coded list of subjects
+  final List<String> subjects = const [
+    'DSA',
+    'Math 208',
+    'MCSC 201',
+    'Digital Logic',
+    'Circuit',
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    fetchUserRole();
-  }
-
-  Future<void> fetchUserRole() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      if (doc.exists) {
-        setState(() {
-          userRole = doc['role'];
-        });
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,13 +25,13 @@ class _AssignmentsPageState extends State<AssignmentsPage> {
         height: double.infinity,
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("images/AppBackground.png"), // Update this path
+            image: AssetImage("images/AppBackground.png"),
             fit: BoxFit.cover,
           ),
         ),
         child: Column(
           children: [
-            // Header
+            // Header (same as AnnouncementPage)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               decoration: const BoxDecoration(
@@ -71,42 +46,37 @@ class _AssignmentsPageState extends State<AssignmentsPage> {
                 children: [
                   Align(
                     alignment: Alignment.centerLeft,
-                    child: MouseRegion(
-                      cursor: SystemMouseCursors.click,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(
-                            255,
-                            228,
-                            208,
-                            239,
-                          ),
-                          foregroundColor: Colors.black87,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 10,
-                          ),
-                          textStyle: GoogleFonts.roboto(fontSize: 18),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(
+                          255,
+                          228,
+                          208,
+                          239,
                         ),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text("BACK"),
+                        foregroundColor: Colors.black87,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 10,
+                        ),
+                        textStyle: GoogleFonts.roboto(fontSize: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text("BACK"),
                     ),
                   ),
                   Center(
                     child: Text(
-                      "Assignments",
+                      "Assignments and Internals",
                       style: const TextStyle(
                         fontSize: 45,
                         fontWeight: FontWeight.w500,
                         fontFamily: 'lexend',
                         color: Colors.white,
-                        letterSpacing: 7,
+                        letterSpacing: 5,
                       ),
                     ),
                   ),
@@ -114,112 +84,46 @@ class _AssignmentsPageState extends State<AssignmentsPage> {
               ),
             ),
 
-            // Assignments List
+            // Subject List
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(20),
-                child: Stack(
-                  children: [
-                    Column(
-                      children: [
-                        const SizedBox(height: 40), // spacing above scroll area
-                        Expanded(
-                          child: Scrollbar(
-                            thickness: 8,
-                            radius: const Radius.circular(10),
-                            thumbVisibility: true,
-                            child: ListView.builder(
-                              itemCount: assignments.length,
-                              itemBuilder: (context, index) {
-                                return AssignmentCard(
-                                  initialText: assignments[index],
-                                  isEditing: isEditing,
-                                  onChanged: (newText) {
-                                    setState(() {
-                                      assignments[index] = newText;
-                                    });
-                                  },
-                                );
-                              },
-                            ),
+                child: ListView.builder(
+                  itemCount: subjects.length,
+                  itemBuilder: (context, i) {
+                    final name = subjects[i];
+                    return Card(
+                      color: const Color(0xFFF1E4FA),
+                      margin: const EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: ListTile(
+                        title: Text(
+                          name,
+                          style: GoogleFonts.roboto(
+                            fontSize: 22,
+                            letterSpacing: 1,
+                            fontWeight: FontWeight.normal,
                           ),
                         ),
-                      ],
-                    ),
-
-                    // CR-only Edit Button
-                    if (userRole == 'CR')
-                      Positioned(
-                        bottom: 10,
-                        right: 10,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFBE90D4),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              isEditing = !isEditing;
-                            });
-                          },
-                          child: Text(
-                            isEditing ? 'Save' : 'Edit',
-                            style: GoogleFonts.roboto(
-                              fontSize: 20,
-                              color: Colors.white,
-                            ),
+                        trailing: const Icon(Icons.arrow_forward_ios),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                SubjectAssignmentPage(subject: name),
                           ),
                         ),
                       ),
-                  ],
+                    );
+                  },
                 ),
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-}
-
-class AssignmentCard extends StatelessWidget {
-  final String initialText;
-  final bool isEditing;
-  final ValueChanged<String> onChanged;
-
-  const AssignmentCard({
-    super.key,
-    required this.initialText,
-    required this.isEditing,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      padding: const EdgeInsets.all(20),
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: const Color(0xFFE5D3F2),
-        border: Border.all(color: Colors.black54),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: isEditing
-          ? TextFormField(
-              initialValue: initialText,
-              onChanged: onChanged,
-              maxLines: null,
-              style: GoogleFonts.roboto(fontSize: 22),
-              decoration: const InputDecoration(border: InputBorder.none),
-            )
-          : Text(initialText, style: GoogleFonts.roboto(fontSize: 24)),
     );
   }
 }

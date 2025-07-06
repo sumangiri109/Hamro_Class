@@ -84,7 +84,7 @@ class _GeneralChatState extends State<GeneralChat> {
                       fontWeight: FontWeight.w500,
                       fontFamily: 'lexend',
                       color: Colors.white,
-                      letterSpacing: 6,
+                      letterSpacing: 5,
                     ),
                   ),
                 ],

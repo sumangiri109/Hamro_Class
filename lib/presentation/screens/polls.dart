@@ -103,7 +103,7 @@ class _PollsPageState extends State<PollsPage> {
                         fontWeight: FontWeight.w500,
                         fontFamily: 'lexend',
                         color: Colors.white,
-                        letterSpacing: 7,
+                        letterSpacing: 5,
                       ),
                     ),
                   ),

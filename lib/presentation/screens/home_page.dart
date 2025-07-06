@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hamro_project/presentation/screens/subject_assignment_page.dart';
 
 import 'announcement.dart';
 import 'assignment.dart';
 import 'class_routine.dart';
 import 'polls.dart';
 import 'upcomming.dart';
-import 'general_chat.dart'; // your chat page
+import 'general_chat.dart';
+
+import 'package:hamro_project/core/services/auth.dart';
 
 void main() {
   runApp(const KachyaKothaApp());
@@ -24,6 +27,10 @@ class KachyaKothaApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(primarySwatch: Colors.deepPurple, fontFamily: 'Georgia'),
       home: const HomePage(),
+      // Make sure to define '/login' route if you want to navigate after logout
+      // routes: {
+      //   '/login': (context) => LoginPage(),
+      // },
     );
   }
 }
@@ -42,7 +49,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late Animation<Offset> _slideAnimation;
   String userRole = 'student';
 
-  final List<MenuItem> menuItems = const [
+  final List<MenuItem> menuItems = [
     MenuItem(
       title: "Announcement",
       iconPath: "images/Announcement.png",
@@ -58,7 +65,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     MenuItem(
       title: "Assignments",
       iconPath: "assets/images/assignments.png",
-      page: AssignmentsPage(),
+      page: AssignmentPage(),
       badgeCount: 5,
     ),
     MenuItem(
@@ -462,11 +469,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ListTile(
               leading: const Icon(Icons.exit_to_app, color: Color(0xFFB388EB)),
               title: const Text('Logout'),
-              onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(
+              onTap: () async {
+                print('logout tapped');
+                await AuthMethods().signOutUser();
+                if (!mounted) return;
+                Navigator.of(
                   context,
-                ).showSnackBar(const SnackBar(content: Text('Logged out')));
+                ).pushNamedAndRemoveUntil('/login', (route) => false);
               },
             ),
           ],

@@ -110,7 +110,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                         fontWeight: FontWeight.w500,
                         fontFamily: 'lexend',
                         color: Colors.white,
-                        letterSpacing: 7,
+                        letterSpacing: 5,
                       ),
                     ),
                   ),
