@@ -102,6 +102,15 @@ class _GeneralChatState extends State<GeneralChat> {
 
                   final docs = snapshot.data?.docs ?? [];
 
+                  // Scroll to bottom when new data arrives
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (_scrollController.hasClients) {
+                      _scrollController.jumpTo(
+                        _scrollController.position.maxScrollExtent,
+                      );
+                    }
+                  });
+
                   return ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.all(12),
@@ -142,9 +151,9 @@ class _GeneralChatState extends State<GeneralChat> {
                                 Text(
                                   email,
                                   style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.normal,
+                                    color: Colors.black54,
                                   ),
                                 ),
                                 if (isCurrentUser && !isDeleted)
@@ -237,7 +246,7 @@ class _GeneralChatState extends State<GeneralChat> {
                                       Text(
                                         timeString,
                                         style: const TextStyle(
-                                          fontSize: 11,
+                                          fontSize: 12,
                                           color: Colors.black54,
                                         ),
                                       ),
@@ -285,6 +294,10 @@ class _GeneralChatState extends State<GeneralChat> {
                           vertical: 10,
                         ),
                       ),
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (value) {
+                        _sendMessage();
+                      },
                     ),
                   ),
                   const SizedBox(width: 8),
