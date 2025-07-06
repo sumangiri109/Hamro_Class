@@ -458,7 +458,7 @@ class _PollCardState extends State<PollCard> {
       margin: const EdgeInsets.symmetric(vertical: 12),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFBE90D4),
+        color: const Color(0xFFF1E4FA),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -493,8 +493,8 @@ class _PollCardState extends State<PollCard> {
                   widget.question,
                   style: GoogleFonts.lexend(
                     fontSize: 20,
-                    letterSpacing: 2,
-                    color: const Color.fromARGB(255, 255, 255, 255),
+                    letterSpacing: 1,
+                    color: Colors.black54,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
