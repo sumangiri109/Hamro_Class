@@ -130,7 +130,7 @@ class _ClassRoutineScreenState extends State<ClassRoutineScreen> {
                         fontWeight: FontWeight.w500,
                         fontFamily: 'lexend',
                         color: Colors.white,
-                        letterSpacing: 7,
+                        letterSpacing: 5,
                       ),
                     ),
                   ),

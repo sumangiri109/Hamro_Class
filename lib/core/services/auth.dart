@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 class AuthMethods {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  //sign up user
+
+  // Sign up user
   Future<String> signUpUser({
     required String email,
     required String password,
@@ -14,13 +15,13 @@ class AuthMethods {
     String res = "Some error occured";
     try {
       if (email.isNotEmpty || password.isNotEmpty) {
-        //register User
+        // Register user
         UserCredential cred = await _auth.createUserWithEmailAndPassword(
           email: email,
           password: password,
         );
         print(cred.user!.uid);
-        //add user to our databse
+        // Add user to database
         await _firestore.collection('users').doc(cred.user!.uid).set({
           'uid': cred.user!.uid,
           'email': email,
@@ -34,7 +35,7 @@ class AuthMethods {
     return res;
   }
 
-  //loggin in user
+  // Log in user
   Future<String> loginUser({
     required String email,
     required String password,
@@ -56,9 +57,9 @@ class AuthMethods {
     return res;
   }
 
+  // Check role
   Future<void> checkCurrentUserRole() async {
     final user = FirebaseAuth.instance.currentUser;
-
     if (user != null) {
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection('users')
@@ -67,8 +68,13 @@ class AuthMethods {
 
       if (userDoc.exists) {
         String role = userDoc['role'];
-        print('User Role: $role'); // prints to console
+        print('User Role: $role');
       }
     }
+  }
+
+  // 🔐 Logout user
+  Future<void> signOutUser() async {
+    await _auth.signOut();
   }
 }
