@@ -286,7 +286,7 @@ class _ClassRoutineScreenState extends State<ClassRoutineScreen> {
               text,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: isHeader ? 17 : 20,
+                fontSize: isHeader ? 17 : 18,
                 fontWeight: isHeader ? FontWeight.bold : FontWeight.bold,
                 fontFamily: 'Georgia',
                 color: isHeader ? Colors.black87 : Colors.black54,
