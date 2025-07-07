@@ -29,7 +29,7 @@ class _SignUpPageState extends State<SignUpPage> {
         decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage(
-              "images/AppBackground.png",
+              "assets/images/AppBackground.png",
             ), // Your background image
             fit: BoxFit.cover, // Make it cover full screen
           ),

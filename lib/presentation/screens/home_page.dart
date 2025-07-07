@@ -52,7 +52,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   final List<MenuItem> menuItems = [
     MenuItem(
       title: "Announcement",
-      iconPath: "images/Announcement.png",
+      iconPath: "assets/images/Announcement.png",
       page: AnnouncementPage(),
       badgeCount: 3,
     ),
@@ -82,7 +82,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     ),
     MenuItem(
       title: "Upcoming",
-      iconPath: "images/commingsoon.jpg",
+      iconPath: "assets/images/commingsoon.jpg",
       page: UpcommingPage(),
       badgeCount: 7,
     ),
