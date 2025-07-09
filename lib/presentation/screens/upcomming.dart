@@ -27,10 +27,7 @@ class _UpcommingPageState extends State<UpcommingPage> {
         fit: StackFit.expand,
         children: [
           // Background image
-          Image.asset(
-            'images/AppBackground.png', // Replace with your image
-            fit: BoxFit.cover,
-          ),
+          Image.asset('assets/images/AppBackground.png', fit: BoxFit.cover),
 
           // Dark overlay
           Container(color: Colors.black.withOpacity(0.5)),

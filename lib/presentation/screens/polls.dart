@@ -48,7 +48,7 @@ class _PollsPageState extends State<PollsPage> {
         height: double.infinity,
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("images/AppBackground.png"),
+            image: AssetImage("assets/images/AppBackground.png"),
             fit: BoxFit.cover,
           ),
         ),
