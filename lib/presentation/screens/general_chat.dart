@@ -31,7 +31,7 @@ class _GeneralChatState extends State<GeneralChat> {
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("images/AppBackground.png"),
+            image: AssetImage("assets/images/AppBackground.png"),
             fit: BoxFit.cover,
           ),
         ),
