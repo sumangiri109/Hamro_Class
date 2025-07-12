@@ -12,11 +12,17 @@ class AssignmentService {
   }
 
   Future<void> addPost(String subject, String text) async {
-    await _posts(subject).add({'text': text, 'timestamp': Timestamp.now()});
+    await _posts(
+      subject,
+    ).add({'text': text, 'timestamp': Timestamp.now(), 'isEdited': false});
   }
 
   Future<void> updatePost(String subject, String postId, String newText) async {
-    await _posts(subject).doc(postId).update({'text': newText});
+    await _posts(subject).doc(postId).update({
+      'text': newText,
+      'isEdited': true,
+      'timestamp': Timestamp.now(), // update timestamp on edit if you want
+    });
   }
 
   Future<void> deletePost(String subject, String postId) async {

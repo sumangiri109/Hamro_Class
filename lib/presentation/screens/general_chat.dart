@@ -54,17 +54,9 @@ class _GeneralChatState extends State<GeneralChat> {
                     alignment: Alignment.centerLeft,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(
-                          255,
-                          228,
-                          208,
-                          239,
-                        ),
+                        backgroundColor: const Color.fromARGB(255, 228, 208, 239),
                         foregroundColor: Colors.black87,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 18,
-                          vertical: 10,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -92,16 +84,13 @@ class _GeneralChatState extends State<GeneralChat> {
               child: StreamBuilder<QuerySnapshot>(
                 stream: _chatService.getMessagesStream(),
                 builder: (context, snapshot) {
-                  if (!snapshot.hasData)
-                    return const Center(child: CircularProgressIndicator());
+                  if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
                   final docs = snapshot.data!.docs;
 
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (_scrollController.hasClients) {
-                      _scrollController.jumpTo(
-                        _scrollController.position.maxScrollExtent,
-                      );
+                      _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
                     }
                   });
 
@@ -120,31 +109,24 @@ class _GeneralChatState extends State<GeneralChat> {
                       final isEdited = data['isEdited'] ?? false;
                       final timestamp = data['timestamp'] as Timestamp?;
                       final isCR = data['isCR'] ?? false;
-                      final reactions = Map<String, dynamic>.from(
-                        data['reactions'] ?? {},
-                      );
+                      final reactions = Map<String, dynamic>.from(data['reactions'] ?? {});
                       final timeString = timestamp != null
-                          ? TimeOfDay.fromDateTime(
-                              timestamp.toDate(),
-                            ).format(context)
+                          ? TimeOfDay.fromDateTime(timestamp.toDate()).format(context)
                           : '';
 
                       return Align(
-                        alignment: isCurrentUser
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
+                        alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 450),
                           child: Container(
                             margin: const EdgeInsets.symmetric(vertical: 6),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 10,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                             decoration: BoxDecoration(
-                              color: isCurrentUser
-                                  ? const Color(0xFFD1C4E9)
-                                  : const Color(0xFFF1E4FA),
+                              color: isCR
+                                  ? const Color.fromARGB(255, 224, 154, 241)
+                                  : isCurrentUser
+                                      ? const Color(0xFFD1C4E9)
+                                      : const Color(0xFFF1E4FA),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(color: Colors.black12),
                             ),
@@ -152,29 +134,17 @@ class _GeneralChatState extends State<GeneralChat> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Row(
                                       children: [
                                         if (isCR)
                                           Container(
-                                            margin: const EdgeInsets.only(
-                                              right: 6,
-                                            ),
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 6,
-                                              vertical: 2,
-                                            ),
+                                            margin: const EdgeInsets.only(right: 6),
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                             decoration: BoxDecoration(
-                                              color: const Color.fromARGB(
-                                                255,
-                                                214,
-                                                213,
-                                                215,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
+                                              color: const Color.fromARGB(255, 224, 223, 225),
+                                              borderRadius: BorderRadius.circular(8),
                                             ),
                                             child: const Text(
                                               'CR',
@@ -187,55 +157,81 @@ class _GeneralChatState extends State<GeneralChat> {
                                           ),
                                         Text(
                                           email,
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.black54,
-                                          ),
+                                          style: const TextStyle(fontSize: 12, color: Colors.black54),
                                         ),
                                       ],
                                     ),
                                     IconButton(
-                                      icon: const Icon(
-                                        Icons.add_reaction_outlined,
-                                        size: 20,
-                                      ),
-                                      onPressed: () =>
-                                          _showReactionSheet(doc.id, reactions),
+                                      icon: const Icon(Icons.add_reaction_outlined, size: 20),
+                                      onPressed: () => _showReactionSheet(doc.id, reactions),
                                     ),
                                   ],
                                 ),
                                 const SizedBox(height: 4),
-                                Text(
-                                  message,
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontStyle: isDeleted
-                                        ? FontStyle.italic
-                                        : FontStyle.normal,
-                                    color: isDeleted
-                                        ? Colors.black54
-                                        : Colors.black,
-                                  ),
-                                ),
+                                _editingDocId == doc.id
+                                    ? Column(
+                                        children: [
+                                          TextField(
+                                            controller: _editController,
+                                            autofocus: true,
+                                            maxLines: null,
+                                            decoration: const InputDecoration(
+                                              hintText: 'Edit your message',
+                                              border: OutlineInputBorder(),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            children: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    _editingDocId = null;
+                                                    _editController.clear();
+                                                  });
+                                                },
+                                                child: const Text('Cancel'),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              ElevatedButton(
+                                                onPressed: () async {
+                                                  final newText = _editController.text.trim();
+                                                  if (newText.isNotEmpty) {
+                                                    await _chatService.editMessage(doc.id, newText);
+                                                    setState(() {
+                                                      _editingDocId = null;
+                                                      _editController.clear();
+                                                    });
+                                                  }
+                                                },
+                                                child: const Text('Save'),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      )
+                                    : Text(
+                                        message,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontStyle:
+                                              isDeleted ? FontStyle.italic : FontStyle.normal,
+                                          color: isDeleted ? Colors.black54 : Colors.black,
+                                        ),
+                                      ),
                                 const SizedBox(height: 4),
                                 Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       timeString,
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.black54,
-                                      ),
+                                      style: const TextStyle(fontSize: 12, color: Colors.black54),
                                     ),
                                     if (isEdited)
                                       const Text(
                                         "(edited)",
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: Colors.black54,
-                                        ),
+                                        style: TextStyle(fontSize: 11, color: Colors.black54),
                                       ),
                                   ],
                                 ),
@@ -245,37 +241,24 @@ class _GeneralChatState extends State<GeneralChat> {
                                     spacing: 6,
                                     children: reactions.entries.map((entry) {
                                       final emoji = entry.key;
-                                      final count =
-                                          (entry.value as List).length;
+                                      final count = (entry.value as List).length;
                                       return Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 2,
-                                        ),
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(
                                           color: Colors.white70,
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
+                                          borderRadius: BorderRadius.circular(12),
                                         ),
-                                        child: Text(
-                                          '$emoji $count',
-                                          style: const TextStyle(fontSize: 14),
-                                        ),
+                                        child: Text('$emoji $count', style: const TextStyle(fontSize: 14)),
                                       );
                                     }).toList(),
                                   ),
                                 ],
-                                if (isCurrentUser && !isDeleted)
+                                if (isCurrentUser && !isDeleted && _editingDocId != doc.id)
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
                                       IconButton(
-                                        icon: const Icon(
-                                          Icons.edit,
-                                          size: 18,
-                                          color: Colors.black54,
-                                        ),
+                                        icon: const Icon(Icons.edit, size: 18, color: Colors.black54),
                                         onPressed: () {
                                           setState(() {
                                             _editingDocId = doc.id;
@@ -284,16 +267,9 @@ class _GeneralChatState extends State<GeneralChat> {
                                         },
                                       ),
                                       IconButton(
-                                        icon: const Icon(
-                                          Icons.delete,
-                                          size: 18,
-                                          color: Colors.black54,
-                                        ),
+                                        icon: const Icon(Icons.delete, size: 18, color: Colors.black54),
                                         onPressed: () async =>
-                                            await _chatService.deleteMessage(
-                                              doc.id,
-                                              email,
-                                            ),
+                                            await _chatService.deleteMessage(doc.id, email),
                                       ),
                                     ],
                                   ),
@@ -326,7 +302,6 @@ class _GeneralChatState extends State<GeneralChat> {
                       onKey: (RawKeyEvent event) {
                         if (event.isKeyPressed(LogicalKeyboardKey.enter)) {
                           if (event.isShiftPressed) {
-                            // Insert newline
                             final text = _messageController.text;
                             final selection = _messageController.selection;
                             final newText = text.replaceRange(
@@ -339,7 +314,6 @@ class _GeneralChatState extends State<GeneralChat> {
                             _messageController.selection =
                                 TextSelection.collapsed(offset: newPos);
                           } else if (event is RawKeyDownEvent) {
-                            // Send message
                             _sendMessage();
                           }
                         }
@@ -351,10 +325,7 @@ class _GeneralChatState extends State<GeneralChat> {
                         decoration: const InputDecoration(
                           hintText: 'Type your message...',
                           border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         ),
                       ),
                     ),
@@ -398,12 +369,7 @@ class _GeneralChatState extends State<GeneralChat> {
             return ListTile(
               title: Text(emoji, style: const TextStyle(fontSize: 18)),
               onTap: () async {
-                await _chatService.toggleReaction(
-                  docId,
-                  emoji,
-                  currentUserEmail!,
-                  hasReacted,
-                );
+                await _chatService.toggleReaction(docId, emoji, currentUserEmail!, hasReacted);
                 Navigator.pop(context);
               },
             );

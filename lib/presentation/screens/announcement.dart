@@ -2,8 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart'; // For date formatting
-
+import 'package:intl/intl.dart';
 import '../../../core/services/notice_service.dart';
 
 class AnnouncementPage extends StatefulWidget {
@@ -15,8 +14,8 @@ class AnnouncementPage extends StatefulWidget {
 
 class _AnnouncementPageState extends State<AnnouncementPage> {
   final NoticeService noticeService = NoticeService();
-  bool isEditing = false;
   String? userRole;
+  String? _editingPostId;
 
   @override
   void initState() {
@@ -79,25 +78,15 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                       cursor: SystemMouseCursors.click,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(
-                            255,
-                            228,
-                            208,
-                            239,
-                          ),
+                          backgroundColor: const Color.fromARGB(255, 228, 208, 239),
                           foregroundColor: Colors.black87,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 10,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                           textStyle: GoogleFonts.roboto(fontSize: 18),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
+                        onPressed: () => Navigator.of(context).pop(),
                         child: const Text("BACK"),
                       ),
                     ),
@@ -118,209 +107,144 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
               ),
             ),
 
-            // Announcements List
+            // Announcement List
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(20),
-                child: Stack(
-                  children: [
-                    Column(
-                      children: [
-                        const SizedBox(height: 40),
-                        Expanded(
-                          child: StreamBuilder<QuerySnapshot>(
-                            stream: noticeService.getNoticesStream(),
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const Center(
-                                  child: CircularProgressIndicator(),
-                                );
-                              }
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: noticeService.getNoticesStream(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-                              if (!snapshot.hasData ||
-                                  snapshot.data!.docs.isEmpty) {
-                                return const Center(
-                                  child: Text(
-                                    'No announcements yet.',
-                                    style: TextStyle(
-                                      color: Colors.black38,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                );
-                              }
+                    final docs = snapshot.data!.docs;
 
-                              final docs = snapshot.data!.docs;
-
-                              return Scrollbar(
-                                thickness: 8,
-                                radius: const Radius.circular(10),
-                                thumbVisibility: true,
-                                child: ListView.builder(
-                                  itemCount: docs.length,
-                                  itemBuilder: (context, index) {
-                                    final doc = docs[index];
-                                    final data =
-                                        doc.data() as Map<String, dynamic>;
-                                    final text = data['text'] ?? '';
-                                    final timestamp =
-                                        data['timestamp'] as Timestamp?;
-
-                                    return AnnouncementCard(
-                                      id: doc.id,
-                                      text: text,
-                                      timestamp: timestamp,
-                                      isEditing: isEditing,
-                                      canEdit: userRole == 'CR',
-                                      onChanged: (newText) {
-                                        noticeService.updateNotice(
-                                          doc.id,
-                                          newText,
-                                        );
-                                      },
-                                      onDelete: () async {
-                                        final confirmed = await showDialog<bool>(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                            title: const Text(
-                                              'Delete Announcement',
-                                            ),
-                                            content: const Text(
-                                              'Are you sure you want to delete this announcement?',
-                                            ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () => Navigator.pop(
-                                                  context,
-                                                  false,
-                                                ),
-                                                child: const Text('Cancel'),
-                                              ),
-                                              TextButton(
-                                                onPressed: () => Navigator.pop(
-                                                  context,
-                                                  true,
-                                                ),
-                                                child: const Text('Delete'),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                        if (confirmed == true) {
-                                          await noticeService.deleteNotice(
-                                            doc.id,
-                                          );
-                                        }
-                                      },
-                                    );
-                                  },
-                                ),
-                              );
-                            },
-                          ),
+                    if (docs.isEmpty) {
+                      return const Center(
+                        child: Text(
+                          'No announcements yet.',
+                          style: TextStyle(color: Colors.black38, fontSize: 18),
                         ),
-                      ],
-                    ),
+                      );
+                    }
 
-                    // CR-only buttons
-                    if (userRole == 'CR') ...[
-                      Positioned(
-                        bottom: 70,
-                        right: 10,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFBE90D4),
-                            side: BorderSide(color: Colors.black26, width: 1.5),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () async {
-                            final newNotice = await showDialog<String>(
-                              context: context,
-                              builder: (context) {
-                                final TextEditingController controller =
-                                    TextEditingController();
-                                return AlertDialog(
-                                  title: const Text('Add Announcement'),
-                                  content: TextField(
-                                    controller: controller,
-                                    decoration: const InputDecoration(
-                                      hintText: 'Type your announcement',
-                                    ),
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text('Cancel'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(
-                                        context,
-                                        controller.text,
-                                      ),
-                                      child: const Text('Post'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
+                    return ListView.builder(
+                      itemCount: docs.length,
+                      itemBuilder: (context, index) {
+                        final doc = docs[index];
+                        final data = doc.data() as Map<String, dynamic>;
 
-                            if (newNotice != null &&
-                                newNotice.trim().isNotEmpty) {
-                              await noticeService.addNotice(newNotice.trim());
-                            }
-                          },
-                          child: Text(
-                            'New Post',
-                            style: GoogleFonts.roboto(
-                              fontSize: 20,
-                              letterSpacing: 3,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 10,
-                        right: 10,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFBE90D4),
-                            side: BorderSide(color: Colors.black26, width: 1.5),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () {
+                        final id = doc.id;
+                        final text = data['text'] ?? '';
+                        final timestamp = data['timestamp'] as Timestamp?;
+                        final isEdited = data['isEdited'] ?? false;
+
+                        return AnnouncementCard(
+                          id: id,
+                          text: text,
+                          timestamp: timestamp,
+                          isEdited: isEdited,
+                          isEditing: _editingPostId == id,
+                          canEdit: userRole == 'CR',
+                          onEdit: () {
                             setState(() {
-                              isEditing = !isEditing;
+                              _editingPostId = id;
                             });
                           },
-                          child: Text(
-                            isEditing ? 'Save' : 'Edit',
-                            style: GoogleFonts.roboto(
-                              fontSize: 20,
-                              letterSpacing: 3,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
+                          onCancelEdit: () {
+                            setState(() {
+                              _editingPostId = null;
+                            });
+                          },
+                          onSave: (newText) async {
+                            await noticeService.updateNotice(id, newText);
+                            setState(() {
+                              _editingPostId = null;
+                            });
+                          },
+                          onDelete: () async {
+                            final confirmed = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Delete Announcement'),
+                                content: const Text('Are you sure you want to delete this announcement?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, true),
+                                    child: const Text('Delete'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirmed == true) {
+                              await noticeService.deleteNotice(id);
+                            }
+                          },
+                        );
+                      },
+                    );
+                  },
                 ),
               ),
             ),
+
+            // Add New Button for CRs
+            if (userRole == 'CR')
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20, right: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () async {
+                        final newNotice = await showDialog<String>(
+                          context: context,
+                          builder: (context) {
+                            final TextEditingController controller = TextEditingController();
+                            return AlertDialog(
+                              title: const Text('Add Announcement'),
+                              content: TextField(
+                                controller: controller,
+                                decoration: const InputDecoration(
+                                  hintText: 'Type your announcement',
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, controller.text),
+                                  child: const Text('Post'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+
+                        if (newNotice != null && newNotice.trim().isNotEmpty) {
+                          await noticeService.addNotice(newNotice.trim());
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFBE90D4),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: Text(
+                        'New Post',
+                        style: GoogleFonts.roboto(fontSize: 20, color: Colors.white, letterSpacing: 3),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
@@ -332,9 +256,12 @@ class AnnouncementCard extends StatefulWidget {
   final String id;
   final String text;
   final Timestamp? timestamp;
+  final bool isEdited;
   final bool isEditing;
   final bool canEdit;
-  final ValueChanged<String> onChanged;
+  final VoidCallback onEdit;
+  final VoidCallback onCancelEdit;
+  final ValueChanged<String> onSave;
   final VoidCallback onDelete;
 
   const AnnouncementCard({
@@ -342,9 +269,12 @@ class AnnouncementCard extends StatefulWidget {
     required this.id,
     required this.text,
     required this.timestamp,
+    required this.isEdited,
     required this.isEditing,
     required this.canEdit,
-    required this.onChanged,
+    required this.onEdit,
+    required this.onCancelEdit,
+    required this.onSave,
     required this.onDelete,
   });
 
@@ -359,14 +289,6 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.text);
-  }
-
-  @override
-  void didUpdateWidget(covariant AnnouncementCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.text != widget.text) {
-      _controller.text = widget.text;
-    }
   }
 
   @override
@@ -389,70 +311,71 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
       decoration: BoxDecoration(
         color: const Color(0xFFF1E4FA),
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.purple.shade100.withOpacity(0.6),
-            offset: const Offset(0, 6),
-            blurRadius: 10,
-            spreadRadius: 2,
-          ),
-        ],
-        border: Border.all(
-          color: const Color.fromARGB(255, 145, 145, 146),
-          width: 1.5,
-        ),
+        border: Border.all(color: Colors.black26),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Editable text or plain text
           widget.isEditing
-              ? TextFormField(
-                  controller: _controller,
-                  maxLines: null,
-                  style: GoogleFonts.roboto(fontSize: 20),
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Color.fromARGB(255, 0, 0, 0),
+              ? Column(
+                  children: [
+                    TextField(
+                      controller: _controller,
+                      maxLines: null,
+                      style: const TextStyle(fontSize: 16),
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        contentPadding: EdgeInsets.all(10),
                       ),
                     ),
-                    contentPadding: EdgeInsets.all(12),
-                  ),
-                  onChanged: widget.onChanged,
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: widget.onCancelEdit,
+                          child: const Text("Cancel"),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            final updatedText = _controller.text.trim();
+                            if (updatedText.isNotEmpty) {
+                              widget.onSave(updatedText);
+                            }
+                          },
+                          child: const Text("Save"),
+                        ),
+                      ],
+                    )
+                  ],
                 )
               : Text(
                   widget.text,
-                  style: GoogleFonts.roboto(
-                    fontSize: 20,
-                    letterSpacing: 1,
-                    color: Colors.black54,
-                    fontWeight: FontWeight.w400,
-                  ),
+                  style: const TextStyle(fontSize: 18),
                 ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                formatTimestamp(widget.timestamp),
-                style: GoogleFonts.roboto(
-                  fontSize: 14,
-                  color: Colors.black45,
-                  fontStyle: FontStyle.italic,
-                ),
+                "${formatTimestamp(widget.timestamp)} ${widget.isEdited ? '(edited)' : ''}",
+                style: const TextStyle(fontSize: 13, color: Colors.black54),
               ),
-
-              // Delete button only if canEdit (CR role)
-              if (widget.canEdit)
-                IconButton(
-                  icon: Icon(Icons.delete, color: Colors.black45, size: 28),
-                  tooltip: 'Delete announcement',
-                  onPressed: widget.onDelete,
+              if (widget.canEdit && !widget.isEditing)
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit, color: Colors.black45),
+                      onPressed: widget.onEdit,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.black45),
+                      onPressed: widget.onDelete,
+                    ),
+                  ],
                 ),
             ],
-          ),
+          )
         ],
       ),
     );

@@ -17,13 +17,24 @@ class SubjectAssignmentPage extends StatefulWidget {
 
 class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
   final AssignmentService _svc = AssignmentService();
-  bool _isEditing = false;
   String? _role;
+
+  // Track which post is being edited (null if none)
+  String? _editingPostId;
+
+  // Controller for the editable TextField (only one at a time)
+  final TextEditingController _editingController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _fetchRole();
+  }
+
+  @override
+  void dispose() {
+    _editingController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchRole() async {
@@ -82,6 +93,31 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
         ).showSnackBar(SnackBar(content: Text('Error adding post: $e')));
       }
     }
+  }
+
+  void _startEditing(String postId, String currentText) {
+    setState(() {
+      _editingPostId = postId;
+      _editingController.text = currentText;
+    });
+  }
+
+  Future<void> _saveEdit(String postId) async {
+    final newText = _editingController.text.trim();
+    if (newText.isNotEmpty) {
+      await _svc.updatePost(widget.subject, postId, newText);
+      setState(() {
+        _editingPostId = null;
+        _editingController.clear();
+      });
+    }
+  }
+
+  void _cancelEdit() {
+    setState(() {
+      _editingPostId = null;
+      _editingController.clear();
+    });
   }
 
   @override
@@ -195,6 +231,12 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                                         doc.data()! as Map<String, dynamic>;
                                     final txt = data['text'] as String? ?? '';
                                     final ts = data['timestamp'] as Timestamp?;
+                                    final isEdited =
+                                        data['isEdited'] as bool? ?? false;
+
+                                    final isEditingThisPost =
+                                        _editingPostId == doc.id;
+
                                     return Container(
                                       margin: const EdgeInsets.symmetric(
                                         vertical: 12,
@@ -226,25 +268,52 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          if (_isEditing && _role == 'CR')
-                                            TextFormField(
-                                              initialValue: txt,
-                                              maxLines: null,
-                                              onFieldSubmitted: (v) =>
-                                                  _svc.updatePost(
-                                                    widget.subject,
-                                                    doc.id,
-                                                    v,
+                                          if (isEditingThisPost &&
+                                              _role == 'CR')
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                TextFormField(
+                                                  controller:
+                                                      _editingController,
+                                                  maxLines: null,
+                                                  style: GoogleFonts.roboto(
+                                                    fontSize: 20,
                                                   ),
-                                              style: GoogleFonts.roboto(
-                                                fontSize: 20,
-                                              ),
-                                              decoration: const InputDecoration(
-                                                border: OutlineInputBorder(),
-                                                contentPadding: EdgeInsets.all(
-                                                  12,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        border:
+                                                            OutlineInputBorder(),
+                                                        contentPadding:
+                                                            EdgeInsets.all(12),
+                                                      ),
                                                 ),
-                                              ),
+                                                const SizedBox(height: 10),
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.end,
+                                                  children: [
+                                                    ElevatedButton(
+                                                      onPressed: () =>
+                                                          _saveEdit(doc.id),
+                                                      child: const Text('Save'),
+                                                    ),
+                                                    const SizedBox(width: 10),
+                                                    ElevatedButton(
+                                                      onPressed: _cancelEdit,
+                                                      style:
+                                                          ElevatedButton.styleFrom(
+                                                            backgroundColor:
+                                                                Colors.grey,
+                                                          ),
+                                                      child: const Text(
+                                                        'Cancel',
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
                                             )
                                           else
                                             Text(
@@ -261,58 +330,79 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
                                               Text(
-                                                _fmt(ts),
+                                                "${_fmt(ts)}${isEdited ? ' (edited)' : ''}",
                                                 style: GoogleFonts.roboto(
                                                   fontSize: 14,
                                                   color: Colors.black45,
                                                   fontStyle: FontStyle.italic,
                                                 ),
                                               ),
-                                              if (_role == 'CR')
-                                                IconButton(
-                                                  icon: const Icon(
-                                                    Icons.delete,
-                                                    color: Colors.black45,
-                                                    size: 28,
-                                                  ),
-                                                  onPressed: () async {
-                                                    final del = await showDialog<bool>(
-                                                      context: context,
-                                                      builder: (_) => AlertDialog(
-                                                        title: const Text(
-                                                          'Delete this post?',
-                                                        ),
-                                                        actions: [
-                                                          TextButton(
-                                                            onPressed: () =>
-                                                                Navigator.pop(
-                                                                  context,
-                                                                  false,
-                                                                ),
-                                                            child: const Text(
-                                                              'No',
-                                                            ),
-                                                          ),
-                                                          TextButton(
-                                                            onPressed: () =>
-                                                                Navigator.pop(
-                                                                  context,
-                                                                  true,
-                                                                ),
-                                                            child: const Text(
-                                                              'Yes',
-                                                            ),
-                                                          ),
-                                                        ],
+                                              if (_role == 'CR' &&
+                                                  !isEditingThisPost)
+                                                Row(
+                                                  children: [
+                                                    IconButton(
+                                                      icon: const Icon(
+                                                        Icons.edit,
+                                                        color: Colors.black54,
+                                                        size: 28,
                                                       ),
-                                                    );
-                                                    if (del == true) {
-                                                      _svc.deletePost(
-                                                        widget.subject,
-                                                        doc.id,
-                                                      );
-                                                    }
-                                                  },
+                                                      tooltip: 'Edit post',
+                                                      onPressed: () =>
+                                                          _startEditing(
+                                                            doc.id,
+                                                            txt,
+                                                          ),
+                                                    ),
+                                                    IconButton(
+                                                      icon: const Icon(
+                                                        Icons.delete,
+                                                        color: Colors.black45,
+                                                        size: 28,
+                                                      ),
+                                                      tooltip: 'Delete post',
+                                                      onPressed: () async {
+                                                        final del = await showDialog<bool>(
+                                                          context: context,
+                                                          builder: (_) => AlertDialog(
+                                                            title: const Text(
+                                                              'Delete this post?',
+                                                            ),
+                                                            actions: [
+                                                              TextButton(
+                                                                onPressed: () =>
+                                                                    Navigator.pop(
+                                                                      context,
+                                                                      false,
+                                                                    ),
+                                                                child:
+                                                                    const Text(
+                                                                      'No',
+                                                                    ),
+                                                              ),
+                                                              TextButton(
+                                                                onPressed: () =>
+                                                                    Navigator.pop(
+                                                                      context,
+                                                                      true,
+                                                                    ),
+                                                                child:
+                                                                    const Text(
+                                                                      'Yes',
+                                                                    ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        );
+                                                        if (del == true) {
+                                                          _svc.deletePost(
+                                                            widget.subject,
+                                                            doc.id,
+                                                          );
+                                                        }
+                                                      },
+                                                    ),
+                                                  ],
                                                 ),
                                             ],
                                           ),
@@ -328,36 +418,8 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                       ],
                     ),
 
+                    // Only "New Post" button for CR
                     if (_role == 'CR') ...[
-                      Positioned(
-                        bottom: 70,
-                        right: 10,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFBE90D4),
-                            side: const BorderSide(
-                              color: Colors.black26,
-                              width: 1.5,
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: _showNewPostDialog,
-                          child: const Text(
-                            'New Post',
-                            style: TextStyle(
-                              fontSize: 20,
-                              letterSpacing: 1,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
                       Positioned(
                         bottom: 10,
                         right: 10,
@@ -376,13 +438,12 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          onPressed: () =>
-                              setState(() => _isEditing = !_isEditing),
+                          onPressed: _showNewPostDialog,
                           child: Text(
-                            _isEditing ? 'Save' : 'Edit',
+                            'New Post',
                             style: GoogleFonts.roboto(
                               fontSize: 20,
-                              letterSpacing: 1,
+                              letterSpacing: 3,
                               color: Colors.white,
                             ),
                           ),
