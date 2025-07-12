@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hamro_project/core/services/auth.dart' show AuthMethods;
 import 'package:hamro_project/presentation/screens/home_page.dart';
-//import 'package:hamro_project/presentation/screens/home_page.dart';
 import 'package:hamro_project/presentation/screens/sign_up_page.dart';
-//import 'package:firebase_auth/firebase_auth.dart';
+import 'waiting_approval.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,6 +14,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
   @override
   void dispose() {
     super.dispose();
@@ -32,13 +32,19 @@ class _LoginPageState extends State<LoginPage> {
       //check the user is cr or student
       await AuthMethods().checkCurrentUserRole();
 
-      // If signup is successful, go to login
-      Navigator.push(
+      // If login is successful, go to home page
+      Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => HomePage()),
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    } else if (res == "not_accepted") {
+      // User not approved yet, navigate to waiting approval page
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const WaitingApprovalPage()),
       );
     } else {
-      // If signup failed, show error
+      // If login failed, show error
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res)));
     }
   }
@@ -125,9 +131,9 @@ class _LoginPageState extends State<LoginPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 40),
-                        child: const Text(
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 40),
+                        child: Text(
                           "Login",
                           style: TextStyle(
                             fontSize: 35,
@@ -163,7 +169,7 @@ class _LoginPageState extends State<LoginPage> {
                       ElevatedButton(
                         onPressed: loginUser,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFFD2B7F5),
+                          backgroundColor: const Color(0xFFD2B7F5),
                           padding: const EdgeInsets.symmetric(
                             horizontal: 40,
                             vertical: 18,
@@ -256,4 +262,3 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
-//Done 
