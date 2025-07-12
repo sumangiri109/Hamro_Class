@@ -15,8 +15,10 @@ class PollsPage extends StatefulWidget {
 
 class _PollsPageState extends State<PollsPage> {
   final PollService pollService = PollService();
-  bool isEditing = false;
   String? userRole;
+
+  // Track which poll is being edited
+  String? _editingPollId;
 
   @override
   void initState() {
@@ -37,6 +39,18 @@ class _PollsPageState extends State<PollsPage> {
         });
       }
     }
+  }
+
+  void _startEditing(String pollId) {
+    setState(() {
+      _editingPollId = pollId;
+    });
+  }
+
+  void _stopEditing() {
+    setState(() {
+      _editingPollId = null;
+    });
   }
 
   @override
@@ -164,6 +178,9 @@ class _PollsPageState extends State<PollsPage> {
                                     final timestamp =
                                         data['timestamp'] as Timestamp?;
 
+                                    final isEditingThisPoll =
+                                        _editingPollId == doc.id;
+
                                     return PollCard(
                                       pollId: doc.id,
                                       question: question,
@@ -171,7 +188,7 @@ class _PollsPageState extends State<PollsPage> {
                                       votes: votes,
                                       timestamp: timestamp,
                                       userRole: userRole,
-                                      isEditing: isEditing,
+                                      isEditing: isEditingThisPoll,
                                       onChanged: (newText) => pollService
                                           .updatePoll(doc.id, newText),
                                       onOptionsChanged: (newOptions) =>
@@ -179,8 +196,8 @@ class _PollsPageState extends State<PollsPage> {
                                             doc.id,
                                             newOptions,
                                           ),
-                                      onVote: (index) =>
-                                          pollService.vote(doc.id, index),
+                                      onVote: (optionIndex) =>
+                                          pollService.vote(doc.id, optionIndex),
                                       onDeVote: () =>
                                           pollService.removeVote(doc.id),
                                       onDelete: () async {
@@ -211,8 +228,14 @@ class _PollsPageState extends State<PollsPage> {
                                         );
                                         if (confirmed == true) {
                                           await pollService.deletePoll(doc.id);
+                                          // If deleted poll was in edit mode, close edit
+                                          if (_editingPollId == doc.id) {
+                                            _stopEditing();
+                                          }
                                         }
                                       },
+                                      onEditStart: () => _startEditing(doc.id),
+                                      onEditCancel: _stopEditing,
                                     );
                                   },
                                 ),
@@ -225,7 +248,8 @@ class _PollsPageState extends State<PollsPage> {
 
                     if (userRole == 'CR') ...[
                       Positioned(
-                        bottom: 70,
+                        bottom:
+                            10, // bottom-right corner like announcement page
                         right: 10,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
@@ -270,11 +294,11 @@ class _PollsPageState extends State<PollsPage> {
                                             ),
                                           ),
                                           TextButton.icon(
-                                            onPressed: () => setState(
-                                              () => optionControllers.add(
+                                            onPressed: () => setState(() {
+                                              optionControllers.add(
                                                 TextEditingController(),
-                                              ),
-                                            ),
+                                              );
+                                            }),
                                             icon: const Icon(Icons.add),
                                             label: const Text("Add Option"),
                                           ),
@@ -320,35 +344,6 @@ class _PollsPageState extends State<PollsPage> {
                           ),
                         ),
                       ),
-                      Positioned(
-                        bottom: 10,
-                        right: 10,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFBE90D4),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              isEditing = !isEditing;
-                            });
-                          },
-                          child: Text(
-                            isEditing ? 'Save' : 'Edit',
-                            style: GoogleFonts.roboto(
-                              fontSize: 20,
-                              letterSpacing: 3,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
                     ],
                   ],
                 ),
@@ -375,6 +370,10 @@ class PollCard extends StatefulWidget {
   final VoidCallback onDeVote;
   final VoidCallback onDelete;
 
+  // Callbacks to control editing state
+  final VoidCallback onEditStart;
+  final VoidCallback onEditCancel;
+
   const PollCard({
     super.key,
     required this.pollId,
@@ -389,6 +388,8 @@ class PollCard extends StatefulWidget {
     required this.onVote,
     required this.onDeVote,
     required this.onDelete,
+    required this.onEditStart,
+    required this.onEditCancel,
   });
 
   @override
@@ -417,6 +418,9 @@ class _PollCardState extends State<PollCard> {
       _controller.text = widget.question;
     }
     if (oldWidget.options != widget.options) {
+      for (var ctrl in _optionControllers) {
+        ctrl.dispose();
+      }
       _optionControllers = widget.options
           .map((opt) => TextEditingController(text: opt))
           .toList();
@@ -476,8 +480,11 @@ class _PollCardState extends State<PollCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          widget.isEditing && widget.userRole == 'CR'
-              ? TextFormField(
+          if (widget.isEditing && widget.userRole == 'CR')
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
                   controller: _controller,
                   maxLines: null,
                   style: GoogleFonts.roboto(fontSize: 20),
@@ -488,19 +495,35 @@ class _PollCardState extends State<PollCard> {
                   onFieldSubmitted: (val) {
                     widget.onChanged(val.trim());
                   },
-                )
-              : Text(
-                  widget.question,
-                  style: GoogleFonts.lexend(
-                    fontSize: 20,
-                    letterSpacing: 1,
-                    color: Colors.black54,
-                    fontWeight: FontWeight.w400,
+                ),
+                const SizedBox(height: 10),
+              ],
+            )
+          else
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.question,
+                    style: GoogleFonts.lexend(
+                      fontSize: 20,
+                      letterSpacing: 1,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
+                if (widget.userRole == 'CR' && !widget.isEditing)
+                  IconButton(
+                    tooltip: 'Edit Poll',
+                    icon: const Icon(Icons.edit, color: Colors.black54),
+                    onPressed: widget.onEditStart,
+                  ),
+              ],
+            ),
           const SizedBox(height: 10),
 
-          // Options with vertical padding between them
           ...List.generate(widget.options.length, (index) {
             final optionText = widget.options[index];
             final voteCount = getVoteCount(index);
@@ -545,7 +568,6 @@ class _PollCardState extends State<PollCard> {
               );
             }
 
-            // Voting buttons with vertical spacing between
             return Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
               child: ElevatedButton(
@@ -613,18 +635,28 @@ class _PollCardState extends State<PollCard> {
 
           if (widget.isEditing && widget.userRole == 'CR') ...[
             const SizedBox(height: 10),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.purple,
-              ),
-              onPressed: () {
-                final newOptions = List<String>.from(widget.options);
-                newOptions.add('');
-                widget.onOptionsChanged(newOptions);
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('Add Option'),
+            Row(
+              children: [
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.purple,
+                  ),
+                  onPressed: () {
+                    final newOptions = List<String>.from(widget.options);
+                    newOptions.add('');
+                    widget.onOptionsChanged(newOptions);
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text('Add Option'),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: widget.onEditCancel,
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
+                  child: const Text('Cancel'),
+                ),
+              ],
             ),
           ],
 
