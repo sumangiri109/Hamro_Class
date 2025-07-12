@@ -442,7 +442,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   Widget _buildFloatingActionButton() => FloatingActionButton(
     onPressed: _showQuickActionsSheet,
     backgroundColor: const Color(0xFFB388EB),
-    child: const Icon(Icons.add, color: Colors.white),
+    child: const Icon(Icons.more_horiz, color: Colors.white),
   );
 
   void _showQuickActionsSheet() {

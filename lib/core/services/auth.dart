@@ -21,11 +21,13 @@ class AuthMethods {
           password: password,
         );
         print(cred.user!.uid);
-        // Add user to database
+        // Add user to database with isAccepted: false (manual approval)
         await _firestore.collection('users').doc(cred.user!.uid).set({
           'uid': cred.user!.uid,
           'email': email,
           'role': 'student',
+          'isAccepted': false, // user starts unapproved
+          'createdAt': FieldValue.serverTimestamp(),
         });
         res = "success";
       }
@@ -43,13 +45,29 @@ class AuthMethods {
     String res = "Some error occured";
     try {
       if (email.isNotEmpty) {
-        await _auth.signInWithEmailAndPassword(
+        UserCredential cred = await _auth.signInWithEmailAndPassword(
           email: email,
           password: password,
         );
-        res = "success";
+
+        // Check if user is accepted
+        DocumentSnapshot userDoc = await _firestore
+            .collection('users')
+            .doc(cred.user!.uid)
+            .get();
+
+        if (userDoc.exists) {
+          bool isAccepted = userDoc['isAccepted'] ?? false;
+          if (isAccepted) {
+            res = "success";
+          } else {
+            res = "not_accepted"; // user not approved yet
+          }
+        } else {
+          res = "User document not found";
+        }
       } else {
-        res = "please enter all the fields";
+        res = "Please enter all the fields";
       }
     } catch (err) {
       res = err.toString();
