@@ -37,7 +37,9 @@ dependencies:
   cloud_firestore: ^4.17.5
   firebase_storage: ^11.6.0
   intl: ^0.19.0
-  
+  shared_preferences: ^2.0.0
+  http: ^1.4.0
+#firebase_funtions: ^6.4.0
 
   # Extras
   image_picker: ^1.1.1
