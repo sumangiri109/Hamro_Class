@@ -14,37 +14,50 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
-    super.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    super.dispose();
   }
 
   void loginUser() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     String res = await AuthMethods().loginUser(
-      email: _emailController.text,
-      password: _passwordController.text,
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
     );
 
-    if (res == "success") {
-      //check the user is cr or student
-      await AuthMethods().checkCurrentUserRole();
+    setState(() {
+      _isLoading = false;
+    });
 
-      // If login is successful, go to home page
+    if (res == "success") {
+      await AuthMethods().getCurrentUserRole();
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
     } else if (res == "not_accepted") {
-      // User not approved yet, navigate to waiting approval page
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const WaitingApprovalPage()),
       );
+    } else if (res == "email_not_verified") {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Email not verified. Your account has been deleted. Please sign up again.",
+          ),
+        ),
+      );
     } else {
-      // If login failed, show error
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res)));
     }
   }
@@ -148,7 +161,7 @@ class _LoginPageState extends State<LoginPage> {
                       TextField(
                         controller: _emailController,
                         decoration: InputDecoration(
-                          labelText: "Email",
+                          labelText: "KU Email",
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(18),
                           ),
@@ -166,27 +179,30 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: loginUser,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFD2B7F5),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 40,
-                            vertical: 18,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                        ),
-                        child: const Text(
-                          "Login",
-                          style: TextStyle(
-                            color: Colors.black54,
-                            letterSpacing: 3.0,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
+
+                      _isLoading
+                          ? const CircularProgressIndicator()
+                          : ElevatedButton(
+                              onPressed: loginUser,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFD2B7F5),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 40,
+                                  vertical: 18,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                              ),
+                              child: const Text(
+                                "Login",
+                                style: TextStyle(
+                                  color: Colors.black54,
+                                  letterSpacing: 3.0,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
                       const SizedBox(height: 20),
 
                       // OR Divider
