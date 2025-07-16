@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:hamro_project/constant/const.dart';
 import 'package:hamro_project/core/services/auth.dart';
-import 'package:hamro_project/presentation/screens/login_page.dart';
+import 'email_verification_waiting_page.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -13,11 +12,62 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  final _studentEmailRegex = RegExp(r'^[^@]+@student\.ku\.edu\.np$');
+
   @override
   void dispose() {
-    super.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    super.dispose();
+  }
+
+  void signUpUser() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (!_studentEmailRegex.hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please use your official student.ku.edu.np email'),
+        ),
+      );
+      return;
+    }
+    if (password.length < 6) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password must be at least 6 characters')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    String res = await AuthMethods().signUpUser(
+      email: email,
+      password: password,
+    );
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (res == "success") {
+      // Navigate to email verification waiting page
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => EmailVerificationWaitingPage(email: email),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $res')));
+    }
   }
 
   @override
@@ -28,17 +78,15 @@ class _SignUpPageState extends State<SignUpPage> {
         height: double.infinity,
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage(
-              "assets/images/AppBackground.png",
-            ), // Your background image
-            fit: BoxFit.cover, // Make it cover full screen
+            image: AssetImage("assets/images/AppBackground.png"),
+            fit: BoxFit.cover,
           ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Left: Text Section
+            // Branding Text
             Expanded(
               flex: 4,
               child: Padding(
@@ -51,8 +99,6 @@ class _SignUpPageState extends State<SignUpPage> {
                       "Kacchya\nKotha~",
                       style: TextStyle(
                         fontSize: 60,
-
-                        // fontWeight: FontWeight.bold,
                         color: Colors.black54,
                         fontFamily: 'lexendPeta',
                         fontWeight: FontWeight.w200,
@@ -75,14 +121,14 @@ class _SignUpPageState extends State<SignUpPage> {
               ),
             ),
 
-            // Middle: Image
+            // Classroom Image
             Expanded(
               flex: 3,
               child: Center(
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: Image.asset(
-                    'assets/images/school-workplace-classroom.jpg', // The classroom image
+                    'assets/images/school-workplace-classroom.jpg',
                     width: 400,
                     height: 500,
                     fit: BoxFit.cover,
@@ -91,7 +137,7 @@ class _SignUpPageState extends State<SignUpPage> {
               ),
             ),
 
-            // Right: Login Form
+            // Sign Up Form
             Expanded(
               flex: 5,
               child: Center(
@@ -104,32 +150,29 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 40),
-                        child: const Text(
-                          "Sign Up",
-                          style: TextStyle(
-                            fontSize: 35,
-                            color: Colors.black54,
-                            letterSpacing: 7.0,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      const Text(
+                        "Sign Up",
+                        style: TextStyle(
+                          fontSize: 35,
+                          color: Colors.black54,
+                          letterSpacing: 7.0,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 30),
 
                       TextField(
                         controller: _emailController,
                         decoration: InputDecoration(
-                          labelText: "Email",
+                          labelText: "KU Email",
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(18),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 30),
+                      const SizedBox(height: 20),
+
                       TextField(
                         controller: _passwordController,
                         obscureText: true,
@@ -140,83 +183,35 @@ class _SignUpPageState extends State<SignUpPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () async {
-                          String res = await AuthMethods().signUpUser(
-                            email: _emailController.text,
-                            password: _passwordController.text,
-                          );
+                      const SizedBox(height: 30),
 
-                          if (res == "success") {
-                            // If signup is successful, go to login
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LoginPage(),
+                      _isLoading
+                          ? const CircularProgressIndicator()
+                          : ElevatedButton(
+                              onPressed: signUpUser,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFD2B7F5),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 40,
+                                  vertical: 18,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
                               ),
-                            );
-                          } else {
-                            // If signup failed, show error
-                            ScaffoldMessenger.of(
-                              context,
-                            ).showSnackBar(SnackBar(content: Text(res)));
-                          }
-                        },
-
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFFD2B7F5),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 40,
-                            vertical: 18,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                        ),
-                        child: const Text(
-                          "Sign in",
-                          style: TextStyle(
-                            color: Colors.black54,
-                            letterSpacing: 3.0,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // OR Divider
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              height: 1,
-                              color: const Color(0xFFDBDBDB),
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 20),
-
-                            child: Text(
-                              "OR",
-                              style: TextStyle(
-                                color: Color(0xFF8E8E8E),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
+                              child: const Text(
+                                "Sign Up",
+                                style: TextStyle(
+                                  color: Colors.black54,
+                                  letterSpacing: 3.0,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
-                          ),
-                          Expanded(
-                            child: Container(
-                              height: 1,
-                              color: const Color(0xFFDBDBDB),
-                            ),
-                          ),
-                        ],
-                      ),
+
                       const SizedBox(height: 20),
 
-                      // Sign Up Section
+                      // Login redirect
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -229,14 +224,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                           ),
                           TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const LoginPage(),
-                                ),
-                              );
-                            },
+                            onPressed: () => Navigator.pop(context),
                             child: const Text(
                               "Log in",
                               style: TextStyle(
