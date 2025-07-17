@@ -73,9 +73,11 @@ Edit
 
 ## 🔧 How to Run
 
+```bash
+
 ### 1️⃣ Clone the Repository
 
-```bash
+
 git clone https://github.com/sumangiri109/Hamro_Class.git
 2️⃣ . Navigate to the Project Folder
 bash
