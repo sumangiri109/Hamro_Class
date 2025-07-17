@@ -10,7 +10,7 @@
 
 - 🔐 **Login & Signup System** (using Firebase Authentication)
   - KU email-based registration only
-  - Email verification required before login
+  - Email verification is required before login
 
 - 🎭 **Role-based Interface**
   - **Students**: View information
@@ -106,14 +106,10 @@ Copy
 Edit
 flutter run
 ```
+
 🤝 Contributing
 Do you have an idea, or have you found a bug?
 Feel free to open an issue or submit a pull request!
-
-📧 Contact
-If you're from KU and having trouble:
-Check your spam folder for the verification email
-If signed up before, please sign up again with the new system
 
 Contact us directly to help us test and improve.
 
