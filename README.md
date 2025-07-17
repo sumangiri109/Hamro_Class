@@ -75,31 +75,29 @@ Edit
 
 ```bash
 
-### 1️⃣ Clone the Repository
-
-
+###
+1️⃣ Clone the Repository
 git clone https://github.com/sumangiri109/Hamro_Class.git
+
 2️⃣ . Navigate to the Project Folder
 bash
 Copy
 Edit
 cd Hamro_Class
+
 3️⃣ . Get the Dependencies
 bash
 Copy
 Edit
 flutter pub get
+
 4️⃣ Connect Firebase
 Add your google-services.json file inside android/app/
-
 Add your GoogleService-Info.plist file inside ios/Runner/
 
 In Firebase Console, enable:
-
 Email/Password Authentication
-
 Cloud Firestore
-
 Firebase Storage
 
 5️⃣ . Run the App
@@ -107,17 +105,16 @@ bash
 Copy
 Edit
 flutter run
+```
 🤝 Contributing
 Do you have an idea, or have you found a bug?
 Feel free to open an issue or submit a pull request!
 
 📧 Contact
 If you're from KU and having trouble:
-
 Check your spam folder for the verification email
-
 If signed up before, please sign up again with the new system
 
-Contact us directly to help us test and improve
+Contact us directly to help us test and improve.
 
 Made with ❤️ by Suman Giri and Team
