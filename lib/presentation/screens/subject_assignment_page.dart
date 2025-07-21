@@ -1,8 +1,10 @@
+import 'dart:io' show File;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/services/assignment_service.dart';
 
@@ -18,12 +20,10 @@ class SubjectAssignmentPage extends StatefulWidget {
 class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
   final AssignmentService _svc = AssignmentService();
   String? _role;
-
-  // Track which post is being edited (null if none)
   String? _editingPostId;
-
-  // Controller for the editable TextField (only one at a time)
   final TextEditingController _editingController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final DateFormat _dateFormat = DateFormat.yMMMd().add_jm();
 
   @override
   void initState() {
@@ -33,6 +33,7 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _editingController.dispose();
     super.dispose();
   }
@@ -52,42 +53,51 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
 
   String _fmt(Timestamp? ts) {
     if (ts == null) return 'Unknown time';
-    return DateFormat.yMMMd().add_jm().format(ts.toDate());
+    return _dateFormat.format(ts.toDate());
   }
 
-  Future<void> _showNewPostDialog() async {
-    final textCtrl = TextEditingController();
-
-    final shouldPost = await showDialog<bool>(
+  Future<String?> _showNewPostDialog() async {
+    final TextEditingController dialogTextCtrl = TextEditingController();
+    final result = await showDialog<String?>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
         title: const Text('Add Assignment'),
         content: TextField(
-          controller: textCtrl,
+          controller: dialogTextCtrl,
           maxLines: 4,
           decoration: const InputDecoration(hintText: 'Details'),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(dialogCtx, false),
+            onPressed: () => Navigator.pop(dialogCtx),
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(dialogCtx, true),
+            onPressed: () {
+              final text = dialogTextCtrl.text.trim();
+              Navigator.pop(dialogCtx, text.isEmpty ? null : text);
+            },
             child: const Text('Post'),
           ),
         ],
       ),
     );
+    dialogTextCtrl.dispose();
+    return result;
+  }
 
-    if (shouldPost == true && textCtrl.text.trim().isNotEmpty) {
-      final txt = textCtrl.text.trim();
-      try {
-        await _svc.addPost(widget.subject, txt);
+  Future<void> _addNewPost() async {
+    final text = await _showNewPostDialog();
+    if (text == null) return;
+    try {
+      await _svc.addPost(widget.subject, text);
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Post added successfully')),
         );
-      } catch (e) {
+      }
+    } catch (e) {
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Error adding post: $e')));
@@ -135,7 +145,7 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
         ),
         child: Column(
           children: [
-            // Header
+            // Header unchanged
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               decoration: const BoxDecoration(
@@ -174,7 +184,7 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                   ),
                   Center(
                     child: Text(
-                      "Assignments and Internals - ${widget.subject}",
+                      "Assignments - ${widget.subject}",
                       style: const TextStyle(
                         fontSize: 45,
                         fontWeight: FontWeight.w500,
@@ -188,7 +198,6 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
               ),
             ),
 
-            // Posts List
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(20),
@@ -211,19 +220,21 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                               if (docs.isEmpty) {
                                 return const Center(
                                   child: Text(
-                                    'No assignment posts yet.',
+                                    'No posts yet.',
                                     style: TextStyle(
-                                      color: Colors.black38,
+                                      color: Colors.black,
                                       fontSize: 18,
                                     ),
                                   ),
                                 );
                               }
                               return Scrollbar(
+                                controller: _scrollController,
                                 thickness: 8,
                                 radius: const Radius.circular(10),
                                 thumbVisibility: true,
                                 child: ListView.builder(
+                                  controller: _scrollController,
                                   itemCount: docs.length,
                                   itemBuilder: (_, i) {
                                     final doc = docs[i];
@@ -233,7 +244,6 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                                     final ts = data['timestamp'] as Timestamp?;
                                     final isEdited =
                                         data['isEdited'] as bool? ?? false;
-
                                     final isEditingThisPost =
                                         _editingPostId == doc.id;
 
@@ -319,8 +329,8 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                                             Text(
                                               txt,
                                               style: GoogleFonts.roboto(
-                                                fontSize: 20,
-                                                color: Colors.black54,
+                                                fontSize: 18,
+                                                color: Colors.black,
                                                 fontWeight: FontWeight.w400,
                                               ),
                                             ),
@@ -332,8 +342,8 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                                               Text(
                                                 "${_fmt(ts)}${isEdited ? ' (edited)' : ''}",
                                                 style: GoogleFonts.roboto(
-                                                  fontSize: 14,
-                                                  color: Colors.black45,
+                                                  fontSize: 15,
+                                                  color: Colors.black54,
                                                   fontStyle: FontStyle.italic,
                                                 ),
                                               ),
@@ -345,9 +355,8 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                                                       icon: const Icon(
                                                         Icons.edit,
                                                         color: Colors.black54,
-                                                        size: 28,
+                                                        size: 25,
                                                       ),
-                                                      tooltip: 'Edit post',
                                                       onPressed: () =>
                                                           _startEditing(
                                                             doc.id,
@@ -357,10 +366,9 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                                                     IconButton(
                                                       icon: const Icon(
                                                         Icons.delete,
-                                                        color: Colors.black45,
-                                                        size: 28,
+                                                        color: Colors.black54,
+                                                        size: 25,
                                                       ),
-                                                      tooltip: 'Delete post',
                                                       onPressed: () async {
                                                         final del = await showDialog<bool>(
                                                           context: context,
@@ -417,13 +425,12 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                         ),
                       ],
                     ),
-
-                    // Only "New Post" button for CR
-                    if (_role == 'CR') ...[
+                    if (_role == 'CR')
                       Positioned(
                         bottom: 10,
                         right: 10,
                         child: ElevatedButton(
+                          onPressed: _addNewPost,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFBE90D4),
                             side: const BorderSide(
@@ -438,7 +445,6 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          onPressed: _showNewPostDialog,
                           child: Text(
                             'New Post',
                             style: GoogleFonts.roboto(
@@ -449,7 +455,6 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                           ),
                         ),
                       ),
-                    ],
                   ],
                 ),
               ),

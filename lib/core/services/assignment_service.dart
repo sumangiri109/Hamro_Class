@@ -11,17 +11,32 @@ class AssignmentService {
     return _posts(subject).orderBy('timestamp', descending: true).snapshots();
   }
 
-  Future<void> addPost(String subject, String text) async {
-    await _posts(
-      subject,
-    ).add({'text': text, 'timestamp': Timestamp.now(), 'isEdited': false});
+  Future<void> addPost(
+    String subject,
+    String text, {
+    String? fileUrl,
+    String? fileName,
+  }) async {
+    final postData = {
+      'text': text,
+      'timestamp': Timestamp.now(),
+      'isEdited': false,
+    };
+
+    // Add file info only if present
+    if (fileUrl != null && fileName != null) {
+      postData['fileUrl'] = fileUrl;
+      postData['fileName'] = fileName;
+    }
+
+    await _posts(subject).add(postData);
   }
 
   Future<void> updatePost(String subject, String postId, String newText) async {
     await _posts(subject).doc(postId).update({
       'text': newText,
       'isEdited': true,
-      'timestamp': Timestamp.now(), // update timestamp on edit if you want
+      'timestamp': Timestamp.now(),
     });
   }
 

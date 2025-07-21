@@ -17,8 +17,7 @@ exports.deleteUnverifiedUsers = functions.pubsub
 
           const usersToDelete = listUsersResult.users.filter((user) => {
             const createdAt = new Date(user.metadata.creationTime);
-            const now = new Date();
-            const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+            const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
             return !user.emailVerified && createdAt < oneHourAgo;
           });
@@ -35,7 +34,7 @@ exports.deleteUnverifiedUsers = functions.pubsub
         } while (nextPageToken);
 
         console.log(`Deleted ${deletedCount} 
-            unverified users older than 1 hour.`);
+          unverified users older than 1 hour.`);
         return null;
       } catch (error) {
         console.error("Error deleting unverified users:", error);

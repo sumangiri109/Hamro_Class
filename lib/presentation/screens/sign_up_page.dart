@@ -35,6 +35,7 @@ class _SignUpPageState extends State<SignUpPage> {
       );
       return;
     }
+
     if (password.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Password must be at least 6 characters')),
@@ -56,7 +57,14 @@ class _SignUpPageState extends State<SignUpPage> {
     });
 
     if (res == "success") {
-      // Navigate to email verification waiting page
+      // Verification email sent inside signUpUser(), no need to resend here
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Verification email sent. Please check your inbox.'),
+        ),
+      );
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
