@@ -68,13 +68,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     ),
     MenuItem(
       title: "Polls",
-      iconPath: "images/pollspage.png",
+      iconPath: "assets/images/pollspage.png",
       page: PollsPage(),
       badgeCount: 2,
     ),
     MenuItem(
       title: "Resources",
-      iconPath: "images/resources.png",
+      iconPath: "assets/images/resources.png",
       page: ResourcePage(),
       badgeCount: 0,
     ),
