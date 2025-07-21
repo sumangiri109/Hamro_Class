@@ -20,10 +20,15 @@ class SubjectAssignmentPage extends StatefulWidget {
 class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
   final AssignmentService _svc = AssignmentService();
   String? _role;
-  String? _editingPostId;
-  final TextEditingController _editingController = TextEditingController();
+  final TextEditingController _postController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final DateFormat _dateFormat = DateFormat.yMMMd().add_jm();
+
+  // map of postId -> comment controller
+  final Map<String, TextEditingController> _commentControllers = {};
+
+  String _fmt(Timestamp? ts) =>
+      ts == null ? 'Unknown time' : _dateFormat.format(ts.toDate());
 
   @override
   void initState() {
@@ -33,8 +38,9 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
 
   @override
   void dispose() {
+    _postController.dispose();
+    _commentControllers.values.forEach((c) => c.dispose());
     _scrollController.dispose();
-    _editingController.dispose();
     super.dispose();
   }
 
@@ -45,89 +51,65 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
           .collection('users')
           .doc(user.uid)
           .get();
-      if (doc.exists && doc.data()!.containsKey('role')) {
-        setState(() => _role = doc['role'] as String);
+      if (doc.exists && doc.data()?.containsKey('role') == true) {
+        setState(() {
+          _role = doc['role'] as String;
+        });
       }
     }
   }
 
-  String _fmt(Timestamp? ts) {
-    if (ts == null) return 'Unknown time';
-    return _dateFormat.format(ts.toDate());
-  }
-
   Future<String?> _showNewPostDialog() async {
-    final TextEditingController dialogTextCtrl = TextEditingController();
+    final controller = TextEditingController();
     final result = await showDialog<String?>(
       context: context,
-      builder: (dialogCtx) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text('Add Assignment'),
         content: TextField(
-          controller: dialogTextCtrl,
+          controller: controller,
           maxLines: 4,
           decoration: const InputDecoration(hintText: 'Details'),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(dialogCtx),
+            onPressed: () => Navigator.pop(ctx),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
-              final text = dialogTextCtrl.text.trim();
-              Navigator.pop(dialogCtx, text.isEmpty ? null : text);
+              final txt = controller.text.trim();
+              Navigator.pop(ctx, txt.isEmpty ? null : txt);
             },
             child: const Text('Post'),
           ),
         ],
       ),
     );
-    dialogTextCtrl.dispose();
+    controller.dispose();
     return result;
   }
 
   Future<void> _addNewPost() async {
     final text = await _showNewPostDialog();
-    if (text == null) return;
-    try {
+    if (text != null) {
       await _svc.addPost(widget.subject, text);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Post added successfully')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error adding post: $e')));
-      }
     }
   }
 
   void _startEditing(String postId, String currentText) {
     setState(() {
-      _editingPostId = postId;
-      _editingController.text = currentText;
+      _postController.text = currentText;
     });
   }
 
   Future<void> _saveEdit(String postId) async {
-    final newText = _editingController.text.trim();
+    final newText = _postController.text.trim();
     if (newText.isNotEmpty) {
       await _svc.updatePost(widget.subject, postId, newText);
       setState(() {
-        _editingPostId = null;
-        _editingController.clear();
+        _postController.clear();
       });
     }
-  }
-
-  void _cancelEdit() {
-    setState(() {
-      _editingPostId = null;
-      _editingController.clear();
-    });
   }
 
   @override
@@ -139,13 +121,13 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
         height: double.infinity,
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("assets/images/AppBackground.png"),
+            image: AssetImage('assets/images/AppBackground.png'),
             fit: BoxFit.cover,
           ),
         ),
         child: Column(
           children: [
-            // Header unchanged
+            // Header
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               decoration: const BoxDecoration(
@@ -179,12 +161,12 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                         ),
                       ),
                       onPressed: () => Navigator.pop(context),
-                      child: const Text("BACK"),
+                      child: const Text('BACK'),
                     ),
                   ),
                   Center(
                     child: Text(
-                      "Assignments - ${widget.subject}",
+                      'Assignments – ${widget.subject}',
                       style: const TextStyle(
                         fontSize: 45,
                         fontWeight: FontWeight.w500,
@@ -198,6 +180,7 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
               ),
             ),
 
+            // Posts + Comments
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(20),
@@ -217,7 +200,7 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                                 );
                               }
                               final docs = snap.data?.docs ?? [];
-                              if (docs.isEmpty) {
+                              if (docs.isEmpty)
                                 return const Center(
                                   child: Text(
                                     'No posts yet.',
@@ -227,7 +210,7 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                                     ),
                                   ),
                                 );
-                              }
+
                               return Scrollbar(
                                 controller: _scrollController,
                                 thickness: 8,
@@ -236,7 +219,7 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                                 child: ListView.builder(
                                   controller: _scrollController,
                                   itemCount: docs.length,
-                                  itemBuilder: (_, i) {
+                                  itemBuilder: (context, i) {
                                     final doc = docs[i];
                                     final data =
                                         doc.data()! as Map<String, dynamic>;
@@ -244,8 +227,16 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                                     final ts = data['timestamp'] as Timestamp?;
                                     final isEdited =
                                         data['isEdited'] as bool? ?? false;
-                                    final isEditingThisPost =
-                                        _editingPostId == doc.id;
+                                    final authorEmail =
+                                        data['userEmail'] as String? ??
+                                        'unknown';
+
+                                    // ensure controller for this post
+                                    final commentCtrl = _commentControllers
+                                        .putIfAbsent(
+                                          doc.id,
+                                          () => TextEditingController(),
+                                        );
 
                                     return Container(
                                       margin: const EdgeInsets.symmetric(
@@ -278,141 +269,132 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          if (isEditingThisPost &&
-                                              _role == 'CR')
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                TextFormField(
-                                                  controller:
-                                                      _editingController,
-                                                  maxLines: null,
-                                                  style: GoogleFonts.roboto(
-                                                    fontSize: 20,
-                                                  ),
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        border:
-                                                            OutlineInputBorder(),
-                                                        contentPadding:
-                                                            EdgeInsets.all(12),
-                                                      ),
-                                                ),
-                                                const SizedBox(height: 10),
-                                                Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.end,
-                                                  children: [
-                                                    ElevatedButton(
-                                                      onPressed: () =>
-                                                          _saveEdit(doc.id),
-                                                      child: const Text('Save'),
-                                                    ),
-                                                    const SizedBox(width: 10),
-                                                    ElevatedButton(
-                                                      onPressed: _cancelEdit,
-                                                      style:
-                                                          ElevatedButton.styleFrom(
-                                                            backgroundColor:
-                                                                Colors.grey,
-                                                          ),
-                                                      child: const Text(
-                                                        'Cancel',
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            )
-                                          else
-                                            Text(
-                                              txt,
-                                              style: GoogleFonts.roboto(
-                                                fontSize: 18,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w400,
+                                          Text(
+                                            txt,
+                                            style: GoogleFonts.roboto(
+                                              fontSize: 18,
+                                              color: Colors.black,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            '${_fmt(ts)}${isEdited ? ' (edited)' : ''}',
+                                            style: GoogleFonts.roboto(
+                                              fontSize: 13,
+                                              fontStyle: FontStyle.italic,
+                                              color: Colors.black54,
+                                            ),
+                                          ),
+                                          const Divider(height: 24),
+
+                                          // Comment input
+                                          TextField(
+                                            controller: commentCtrl,
+                                            decoration: InputDecoration(
+                                              hintText: 'Add a comment...',
+                                              suffixIcon: IconButton(
+                                                icon: const Icon(Icons.send),
+                                                onPressed: () async {
+                                                  final commentText =
+                                                      commentCtrl.text.trim();
+                                                  if (commentText.isNotEmpty) {
+                                                    await _svc.addComment(
+                                                      subject: widget.subject,
+                                                      postId: doc.id,
+                                                      commentText: commentText,
+                                                    );
+                                                    commentCtrl.clear();
+                                                  }
+                                                },
                                               ),
                                             ),
-                                          const SizedBox(height: 10),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                "${_fmt(ts)}${isEdited ? ' (edited)' : ''}",
-                                                style: GoogleFonts.roboto(
-                                                  fontSize: 15,
-                                                  color: Colors.black54,
-                                                  fontStyle: FontStyle.italic,
-                                                ),
-                                              ),
-                                              if (_role == 'CR' &&
-                                                  !isEditingThisPost)
-                                                Row(
-                                                  children: [
-                                                    IconButton(
-                                                      icon: const Icon(
-                                                        Icons.edit,
-                                                        color: Colors.black54,
-                                                        size: 25,
-                                                      ),
-                                                      onPressed: () =>
-                                                          _startEditing(
-                                                            doc.id,
-                                                            txt,
-                                                          ),
-                                                    ),
-                                                    IconButton(
-                                                      icon: const Icon(
-                                                        Icons.delete,
-                                                        color: Colors.black54,
-                                                        size: 25,
-                                                      ),
-                                                      onPressed: () async {
-                                                        final del = await showDialog<bool>(
-                                                          context: context,
-                                                          builder: (_) => AlertDialog(
-                                                            title: const Text(
-                                                              'Delete this post?',
-                                                            ),
-                                                            actions: [
-                                                              TextButton(
-                                                                onPressed: () =>
-                                                                    Navigator.pop(
-                                                                      context,
-                                                                      false,
-                                                                    ),
-                                                                child:
-                                                                    const Text(
-                                                                      'No',
-                                                                    ),
+                                          ),
+                                          const SizedBox(height: 12),
+
+                                          // Comment list
+                                          StreamBuilder<QuerySnapshot>(
+                                            stream: _svc.getCommentsStream(
+                                              widget.subject,
+                                              doc.id,
+                                            ),
+                                            builder: (c, csnap) {
+                                              if (!csnap.hasData)
+                                                return const SizedBox();
+                                              final comments = csnap.data!.docs;
+                                              return ListView.builder(
+                                                shrinkWrap: true,
+                                                physics:
+                                                    const NeverScrollableScrollPhysics(),
+                                                itemCount: comments.length,
+                                                itemBuilder: (context, idx) {
+                                                  final cd = comments[idx];
+                                                  final cdata =
+                                                      cd.data()!
+                                                          as Map<
+                                                            String,
+                                                            dynamic
+                                                          >;
+                                                  final email =
+                                                      cdata['userEmail']
+                                                          as String? ??
+                                                      'unknown';
+                                                  final text =
+                                                      cdata['text']
+                                                          as String? ??
+                                                      '';
+                                                  final cts =
+                                                      cdata['timestamp']
+                                                          as Timestamp?;
+
+                                                  return Container(
+                                                    margin:
+                                                        const EdgeInsets.only(
+                                                          bottom: 12,
+                                                        ),
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 8,
+                                                        ),
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          email,
+                                                          style:
+                                                              const TextStyle(
+                                                                fontSize: 16,
                                                               ),
-                                                              TextButton(
-                                                                onPressed: () =>
-                                                                    Navigator.pop(
-                                                                      context,
-                                                                      true,
-                                                                    ),
-                                                                child:
-                                                                    const Text(
-                                                                      'Yes',
-                                                                    ),
+                                                        ),
+                                                        const SizedBox(
+                                                          height: 4,
+                                                        ),
+                                                        Text(
+                                                          text,
+                                                          style:
+                                                              const TextStyle(
+                                                                fontSize: 14,
                                                               ),
-                                                            ],
-                                                          ),
-                                                        );
-                                                        if (del == true) {
-                                                          _svc.deletePost(
-                                                            widget.subject,
-                                                            doc.id,
-                                                          );
-                                                        }
-                                                      },
+                                                        ),
+                                                        const SizedBox(
+                                                          height: 4,
+                                                        ),
+                                                        Text(
+                                                          _fmt(cts),
+                                                          style:
+                                                              const TextStyle(
+                                                                fontSize: 12,
+                                                                color: Colors
+                                                                    .black45,
+                                                              ),
+                                                        ),
+                                                      ],
                                                     ),
-                                                  ],
-                                                ),
-                                            ],
+                                                  );
+                                                },
+                                              );
+                                            },
                                           ),
                                         ],
                                       ),
@@ -425,6 +407,7 @@ class _SubjectAssignmentPageState extends State<SubjectAssignmentPage> {
                         ),
                       ],
                     ),
+
                     if (_role == 'CR')
                       Positioned(
                         bottom: 10,

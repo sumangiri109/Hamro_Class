@@ -16,6 +16,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
   final NoticeService noticeService = NoticeService();
   String? userRole;
   String? _editingPostId;
+  String? userEmail;
 
   @override
   void initState() {
@@ -33,6 +34,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
       if (doc.exists && doc.data()?.containsKey('role') == true) {
         setState(() {
           userRole = doc['role'] as String?;
+          userEmail = user.email;
         });
       }
     }
@@ -78,9 +80,17 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                       cursor: SystemMouseCursors.click,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 228, 208, 239),
+                          backgroundColor: const Color.fromARGB(
+                            255,
+                            228,
+                            208,
+                            239,
+                          ),
                           foregroundColor: Colors.black87,
-                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 10,
+                          ),
                           textStyle: GoogleFonts.roboto(fontSize: 18),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -139,6 +149,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                         final text = data['text'] ?? '';
                         final timestamp = data['timestamp'] as Timestamp?;
                         final isEdited = data['isEdited'] ?? false;
+                        final authorEmail = data['userEmail'] ?? 'unknown';
 
                         return AnnouncementCard(
                           id: id,
@@ -146,7 +157,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                           timestamp: timestamp,
                           isEdited: isEdited,
                           isEditing: _editingPostId == id,
-                          canEdit: userRole == 'CR',
+                          canEdit: userRole == 'CR' && authorEmail == userEmail,
                           onEdit: () {
                             setState(() {
                               _editingPostId = id;
@@ -168,14 +179,18 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                               context: context,
                               builder: (context) => AlertDialog(
                                 title: const Text('Delete Announcement'),
-                                content: const Text('Are you sure you want to delete this announcement?'),
+                                content: const Text(
+                                  'Are you sure you want to delete this announcement?',
+                                ),
                                 actions: [
                                   TextButton(
-                                    onPressed: () => Navigator.pop(context, false),
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
                                     child: const Text('Cancel'),
                                   ),
                                   TextButton(
-                                    onPressed: () => Navigator.pop(context, true),
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
                                     child: const Text('Delete'),
                                   ),
                                 ],
@@ -185,6 +200,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                               await noticeService.deleteNotice(id);
                             }
                           },
+                          userEmail: userEmail,
                         );
                       },
                     );
@@ -205,7 +221,8 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                         final newNotice = await showDialog<String>(
                           context: context,
                           builder: (context) {
-                            final TextEditingController controller = TextEditingController();
+                            final TextEditingController controller =
+                                TextEditingController();
                             return AlertDialog(
                               title: const Text('Add Announcement'),
                               content: TextField(
@@ -213,6 +230,7 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                                 decoration: const InputDecoration(
                                   hintText: 'Type your announcement',
                                 ),
+                                maxLines: null,
                               ),
                               actions: [
                                 TextButton(
@@ -220,7 +238,8 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                                   child: const Text('Cancel'),
                                 ),
                                 TextButton(
-                                  onPressed: () => Navigator.pop(context, controller.text),
+                                  onPressed: () =>
+                                      Navigator.pop(context, controller.text),
                                   child: const Text('Post'),
                                 ),
                               ],
@@ -228,18 +247,32 @@ class _AnnouncementPageState extends State<AnnouncementPage> {
                           },
                         );
 
-                        if (newNotice != null && newNotice.trim().isNotEmpty) {
-                          await noticeService.addNotice(newNotice.trim());
+                        if (newNotice != null &&
+                            newNotice.trim().isNotEmpty &&
+                            userEmail != null) {
+                          await noticeService.addNotice(
+                            newNotice.trim(),
+                            userEmail!,
+                          );
                         }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFBE90D4),
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       child: Text(
                         'New Post',
-                        style: GoogleFonts.roboto(fontSize: 20, color: Colors.white, letterSpacing: 3),
+                        style: GoogleFonts.roboto(
+                          fontSize: 20,
+                          color: Colors.white,
+                          letterSpacing: 3,
+                        ),
                       ),
                     ),
                   ],
@@ -263,6 +296,7 @@ class AnnouncementCard extends StatefulWidget {
   final VoidCallback onCancelEdit;
   final ValueChanged<String> onSave;
   final VoidCallback onDelete;
+  final String? userEmail;
 
   const AnnouncementCard({
     super.key,
@@ -276,6 +310,7 @@ class AnnouncementCard extends StatefulWidget {
     required this.onCancelEdit,
     required this.onSave,
     required this.onDelete,
+    required this.userEmail,
   });
 
   @override
@@ -284,6 +319,8 @@ class AnnouncementCard extends StatefulWidget {
 
 class _AnnouncementCardState extends State<AnnouncementCard> {
   late TextEditingController _controller;
+  final TextEditingController _commentController = TextEditingController();
+  final NoticeService _noticeService = NoticeService();
 
   @override
   void initState() {
@@ -294,6 +331,7 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
   @override
   void dispose() {
     _controller.dispose();
+    _commentController.dispose();
     super.dispose();
   }
 
@@ -316,66 +354,134 @@ class _AnnouncementCardState extends State<AnnouncementCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          widget.isEditing
-              ? Column(
-                  children: [
-                    TextField(
-                      controller: _controller,
-                      maxLines: null,
-                      style: const TextStyle(fontSize: 16),
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.all(10),
+          if (widget.isEditing) ...[
+            TextField(
+              controller: _controller,
+              maxLines: null,
+              style: const TextStyle(fontSize: 16),
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.all(10),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: widget.onCancelEdit,
+                  child: const Text("Cancel"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final updatedText = _controller.text.trim();
+                    if (updatedText.isNotEmpty) {
+                      widget.onSave(updatedText);
+                    }
+                  },
+                  child: const Text("Save"),
+                ),
+              ],
+            ),
+            const Divider(),
+          ] else ...[
+            Text(widget.text, style: const TextStyle(fontSize: 18)),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "${formatTimestamp(widget.timestamp)} ${widget.isEdited ? '(edited)' : ''}",
+                  style: const TextStyle(fontSize: 13, color: Colors.black54),
+                ),
+                if (widget.canEdit)
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.black45),
+                        onPressed: widget.onEdit,
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.black45),
+                        onPressed: widget.onDelete,
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+            const Divider(),
+          ],
+
+          // Comment Input
+          TextField(
+            controller: _commentController,
+            decoration: InputDecoration(
+              hintText: 'Add a comment...',
+              suffixIcon: IconButton(
+                icon: const Icon(Icons.send),
+                onPressed: () async {
+                  final text = _commentController.text.trim();
+                  if (text.isNotEmpty && widget.userEmail != null) {
+                    await _noticeService.addComment(
+                      noticeId: widget.id,
+                      commentText: text,
+                      userEmail: widget.userEmail!,
+                    );
+                    _commentController.clear();
+                  }
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Comment List styled like Facebook
+          StreamBuilder<QuerySnapshot>(
+            stream: _noticeService.getCommentsStream(widget.id),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) return const SizedBox();
+              final comments = snapshot.data!.docs;
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: comments.length,
+                itemBuilder: (context, index) {
+                  final commentDoc = comments[index];
+                  final data = commentDoc.data() as Map<String, dynamic>;
+                  final commenterEmail = data['userEmail'] ?? 'unknown';
+                  final commentText = data['text'] ?? '';
+                  final ts = data['timestamp'] as Timestamp?;
+
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        TextButton(
-                          onPressed: widget.onCancelEdit,
-                          child: const Text("Cancel"),
+                        // Commenter name
+                        Text(
+                          commenterEmail,
+                          style: const TextStyle(fontSize: 16),
                         ),
-                        ElevatedButton(
-                          onPressed: () {
-                            final updatedText = _controller.text.trim();
-                            if (updatedText.isNotEmpty) {
-                              widget.onSave(updatedText);
-                            }
-                          },
-                          child: const Text("Save"),
+                        const SizedBox(height: 4),
+                        // Comment text
+                        Text(commentText, style: const TextStyle(fontSize: 14)),
+                        const SizedBox(height: 4),
+                        // Timestamp
+                        Text(
+                          formatTimestamp(ts),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.black45,
+                          ),
                         ),
                       ],
-                    )
-                  ],
-                )
-              : Text(
-                  widget.text,
-                  style: const TextStyle(fontSize: 18),
-                ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "${formatTimestamp(widget.timestamp)} ${widget.isEdited ? '(edited)' : ''}",
-                style: const TextStyle(fontSize: 13, color: Colors.black54),
-              ),
-              if (widget.canEdit && !widget.isEditing)
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.black45),
-                      onPressed: widget.onEdit,
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.black45),
-                      onPressed: widget.onDelete,
-                    ),
-                  ],
-                ),
-            ],
-          )
+                  );
+                },
+              );
+            },
+          ),
         ],
       ),
     );
