@@ -5,7 +5,7 @@ class AuthMethods {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Create user with email & password and send verification email (no Firestore doc yet)
+  // Create user with email & password, create Firestore doc, and send verification email
   Future<String> signUpUser({
     required String email,
     required String password,
@@ -17,7 +17,16 @@ class AuthMethods {
         password: password,
       );
 
-      // Send verification email
+      // Create user document in Firestore immediately on signup
+      await _firestore.collection('users').doc(cred.user!.uid).set({
+        'uid': cred.user!.uid,
+        'email': email,
+        'role': 'student',
+        'isAccepted': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      // Send verification email once here
       await cred.user!.sendEmailVerification();
 
       res = "success";
@@ -41,14 +50,17 @@ class AuthMethods {
         );
 
         if (!cred.user!.emailVerified) {
-          // Delete the unverified user from Firebase Auth
-          await cred.user!.delete();
+          try {
+            await cred.user!.delete();
+          } catch (e) {
+            // Handle deletion errors gracefully (log, etc.)
+          }
           await _auth.signOut(); // sign out immediately
 
           return "email_not_verified";
         }
 
-        // Check Firestore if user doc exists
+        // Check Firestore if user doc exists (redundant now, but safe)
         DocumentSnapshot userDoc = await _firestore
             .collection('users')
             .doc(cred.user!.uid)
@@ -76,7 +88,6 @@ class AuthMethods {
         res = "Please enter all the fields";
       }
     } on FirebaseAuthException catch (e) {
-      // Handle specific Firebase errors
       if (e.code == 'user-not-found') {
         res = "No user found with this email.";
       } else if (e.code == 'wrong-password') {
@@ -90,7 +101,6 @@ class AuthMethods {
     return res;
   }
 
-  // Get current user role (for logic or debug)
   Future<String?> getCurrentUserRole() async {
     final user = _auth.currentUser;
     if (user != null) {
@@ -105,7 +115,6 @@ class AuthMethods {
     return null;
   }
 
-  // Logout
   Future<void> signOutUser() async {
     await _auth.signOut();
   }

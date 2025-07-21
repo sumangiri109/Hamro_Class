@@ -10,6 +10,8 @@ import 'class_routine.dart';
 import 'polls.dart';
 import 'upcomming.dart';
 import 'general_chat.dart';
+import 'participant_page.dart';
+import 'resource_page.dart'; // New import for Resource Sharing
 
 import 'package:hamro_project/core/services/auth.dart';
 
@@ -27,10 +29,6 @@ class KachyaKothaApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(primarySwatch: Colors.deepPurple, fontFamily: 'Georgia'),
       home: const HomePage(),
-      // Make sure to define '/login' route if you want to navigate after logout
-      // routes: {
-      //   '/login': (context) => LoginPage(),
-      // },
     );
   }
 }
@@ -70,13 +68,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     ),
     MenuItem(
       title: "Polls",
-      iconPath: "assets/images/pool.png",
+      iconPath: "images/pollspage.png",
       page: PollsPage(),
       badgeCount: 2,
     ),
     MenuItem(
-      title: "General Chat", // new entry
-      iconPath: "assets/images/upcomming.png", // same as Upcoming
+      title: "Resources",
+      iconPath: "images/resources.png",
+      page: ResourcePage(),
+      badgeCount: 0,
+    ),
+    MenuItem(
+      title: "General Chat",
+      iconPath: "assets/images/upcomming.png",
       page: GeneralChat(),
       badgeCount: 0,
     ),
@@ -123,7 +127,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             .doc(user.uid)
             .get();
         if (doc.exists) {
-          setState(() => userRole = doc['role'] ?? 'student');
+          setState(() => userRole = doc['role'] as String? ?? 'student');
         }
       }
     } catch (e) {
@@ -300,14 +304,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               builder: (context, child) {
                 final delay = index * 0.1;
                 final val = Curves.easeOutBack.transform(
-                  math.max(
-                    0,
-                    (_animationController.value - delay) / (1 - delay),
+                  ((_animationController.value - delay) / (1 - delay)).clamp(
+                    0.0,
+                    1.0,
                   ),
                 );
                 return Transform.scale(
                   scale: val,
-                  child: _buildEnhancedMenuCard(item, index),
+                  child: _buildEnhancedMenuCard(item),
                 );
               },
             );
@@ -317,7 +321,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     ),
   );
 
-  Widget _buildEnhancedMenuCard(MenuItem item, int index) => Hero(
+  Widget _buildEnhancedMenuCard(MenuItem item) => Hero(
     tag: "menu_${item.title}",
     child: Material(
       color: Colors.transparent,
@@ -374,6 +378,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 right: 0,
                 child: Text(
                   item.title,
+                  textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 15,
                     letterSpacing: 4,
@@ -387,7 +392,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       ),
                     ],
                   ),
-                  textAlign: TextAlign.center,
                 ),
               ),
               if (item.badgeCount > 0)
@@ -449,38 +453,55 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (c) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(25),
-            topRight: Radius.circular(25),
+      builder: (c) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(25),
+              topRight: Radius.circular(25),
+            ),
           ),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Quick Actions',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            ListTile(
-              leading: const Icon(Icons.exit_to_app, color: Color(0xFFB388EB)),
-              title: const Text('Logout'),
-              onTap: () async {
-                print('logout tapped');
-                await AuthMethods().signOutUser();
-                if (!mounted) return;
-                Navigator.of(
-                  context,
-                ).pushNamedAndRemoveUntil('/login', (route) => false);
-              },
-            ),
-          ],
-        ),
-      ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Quick Actions',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.group, color: Color(0xFFB388EB)),
+                title: const Text('Participants (Admin Panel)'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ParticipantPage(),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.exit_to_app,
+                  color: Color(0xFFB388EB),
+                ),
+                title: const Text('Logout'),
+                onTap: () async {
+                  await AuthMethods().signOutUser();
+                  if (!mounted) return;
+                  Navigator.of(
+                    context,
+                  ).pushNamedAndRemoveUntil('/login', (route) => false);
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
